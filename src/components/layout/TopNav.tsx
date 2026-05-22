@@ -1,5 +1,6 @@
 import { Link, NavLink } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { AppLogo } from '@/components/ui/AppLogo'
 
 const links = [
   { to: '/dashboard', label: 'Dashboard' },
@@ -16,9 +17,7 @@ export function TopNav() {
     <header className="sticky top-0 z-30 hidden border-b border-border bg-surface/95 backdrop-blur sm:block">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         <Link to="/dashboard" className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-brand text-black font-extrabold">
-            L
-          </div>
+          <AppLogo size="sm" />
           <span className="text-base font-bold tracking-tight">LiftLog</span>
         </Link>
         <nav className="flex items-center gap-1">

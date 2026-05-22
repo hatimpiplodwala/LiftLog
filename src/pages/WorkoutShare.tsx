@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { Card } from '@/components/ui/Card'
+import { AppLogo } from '@/components/ui/AppLogo'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
@@ -80,9 +81,7 @@ export function WorkoutShare() {
       <header className="border-b border-border bg-surface/95 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-5">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-brand font-extrabold text-black">
-              L
-            </div>
+            <AppLogo size="sm" />
             <span className="text-base font-bold tracking-tight">LiftLog</span>
           </Link>
           <Link to="/signup">

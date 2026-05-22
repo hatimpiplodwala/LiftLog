@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
+import { AppLogo } from '@/components/ui/AppLogo'
 import { Input } from '@/components/ui/Input'
 
 export function Signup() {
@@ -42,9 +43,7 @@ export function Signup() {
     <div className="min-h-screen bg-bg">
       <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-5 py-10">
         <Link to="/" className="mb-8 inline-flex items-center gap-2 self-start">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-brand font-extrabold text-black">
-            L
-          </div>
+          <AppLogo size="md" />
           <span className="text-lg font-bold tracking-tight">LiftLog</span>
         </Link>
 

@@ -1,14 +1,13 @@
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
+import { AppLogo } from '@/components/ui/AppLogo'
 
 export function Landing() {
   return (
     <div className="min-h-screen bg-bg">
       <header className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-brand font-extrabold text-black">
-            L
-          </div>
+          <AppLogo size="md" />
           <span className="text-lg font-bold tracking-tight">LiftLog</span>
         </div>
         <Link
