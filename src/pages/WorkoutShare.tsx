@@ -77,12 +77,12 @@ export function WorkoutShare() {
   }, [data])
 
   return (
-    <div className="min-h-screen bg-bg">
-      <header className="border-b border-border bg-surface/95 backdrop-blur">
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-5">
           <Link to="/" className="flex items-center gap-2">
             <AppLogo size="sm" />
-            <span className="text-base font-bold tracking-tight">LiftLog</span>
+            <span className="text-base font-bold tracking-tight text-foreground">LiftLog</span>
           </Link>
           <Link to="/signup">
             <Button size="sm" variant="secondary">Sign up free</Button>
@@ -97,11 +97,11 @@ export function WorkoutShare() {
           </div>
         ) : isError || !data ? (
           <Card className="text-center">
-            <p className="text-sm font-medium text-fg">Workout not found</p>
-            <p className="mt-1 text-xs text-fg-muted">
+            <p className="text-sm font-medium text-foreground">Workout not found</p>
+            <p className="mt-1 text-xs text-muted-foreground">
               The share link may have been revoked or never existed.
             </p>
-            <Link to="/" className="mt-4 inline-block text-sm font-semibold text-brand">
+            <Link to="/" className="mt-4 inline-block text-sm font-semibold text-primary">
               Go to LiftLog →
             </Link>
           </Card>
@@ -129,11 +129,11 @@ function SharedWorkoutView({
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-xs font-medium uppercase tracking-wide text-brand">
-          Shared workout
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight">{data.workout.name}</h1>
-        <p className="mt-1 text-sm text-fg-muted">
+        <p className="text-xs font-medium uppercase tracking-wide text-primary">Shared workout</p>
+        <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-foreground">
+          {data.workout.name}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           {format(new Date(data.workout.started_at), 'EEEE, MMM d, yyyy · h:mm a')}
         </p>
       </div>
@@ -147,25 +147,25 @@ function SharedWorkoutView({
       <div className="space-y-3">
         {grouped.length === 0 ? (
           <Card className="text-center">
-            <p className="text-sm text-fg-muted">No sets in this workout.</p>
+            <p className="text-sm text-muted-foreground">No sets in this workout.</p>
           </Card>
         ) : (
           grouped.map(({ exercise, sets }, idx) => (
             <Card key={exercise?.id ?? idx} className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-bold">{exercise?.name ?? 'Unknown'}</h3>
+                <h3 className="text-sm font-bold text-foreground">{exercise?.name ?? 'Unknown'}</h3>
                 {exercise && <Badge variant="muted">{exercise.category}</Badge>}
               </div>
               <div className="space-y-1">
                 {sets.map((s, i) => (
                   <div
                     key={s.id}
-                    className="flex items-center justify-between rounded-lg bg-surface-2/60 px-3 py-2 text-sm"
+                    className="flex items-center justify-between rounded-md bg-secondary/60 px-3 py-2 text-sm"
                   >
-                    <span className="text-xs font-semibold text-fg-dim tabular-nums">
+                    <span className="text-xs font-semibold text-muted-foreground tabular-nums">
                       Set {i + 1}
                     </span>
-                    <span className="font-medium tabular-nums">{formatSet(s)}</span>
+                    <span className="font-medium tabular-nums text-foreground">{formatSet(s)}</span>
                   </div>
                 ))}
               </div>
@@ -174,9 +174,11 @@ function SharedWorkoutView({
         )}
       </div>
 
-      <Card className="border-brand/40 bg-brand-dim/15 text-center">
-        <p className="text-sm font-semibold text-fg">Track your own workouts with LiftLog</p>
-        <p className="mt-1 text-xs text-fg-muted">
+      <Card className="border-primary/40 bg-primary/5 text-center">
+        <p className="text-sm font-semibold text-foreground">
+          Track your own workouts with LiftLog
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">
           Freeform logging, previous-set hints, volume charts, and sharable summaries.
         </p>
         <Link to="/signup" className="mt-3 inline-block">
@@ -197,8 +199,8 @@ function formatSet(s: WorkoutSet): string {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <Card className="px-3 py-3 text-center">
-      <div className="text-[11px] font-medium uppercase text-fg-dim">{label}</div>
-      <div className="mt-1 text-base font-extrabold tabular-nums">{value}</div>
+      <div className="text-[11px] font-medium uppercase text-muted-foreground">{label}</div>
+      <div className="mt-1 text-base font-extrabold tabular-nums text-foreground">{value}</div>
     </Card>
   )
 }

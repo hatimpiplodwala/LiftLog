@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
 import { SearchIcon } from '@/components/layout/Icons'
 import { useExercises } from '@/hooks/useExercises'
+import { cn } from '@/lib/utils'
 import type { Category, Exercise } from '@/types/database.types'
 
 const CATEGORIES: Array<Category | 'all'> = [
@@ -47,7 +48,7 @@ export function ExercisePicker({ open, onClose, onPick, excludeIds = [] }: Props
         <div className="relative">
           <SearchIcon
             size={16}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-fg-dim"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
           />
           <Input
             value={search}
@@ -64,12 +65,12 @@ export function ExercisePicker({ open, onClose, onPick, excludeIds = [] }: Props
               key={c}
               type="button"
               onClick={() => setCat(c)}
-              className={
-                'shrink-0 rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors ' +
-                (cat === c
-                  ? 'border-brand bg-brand-dim/30 text-brand'
-                  : 'border-border bg-surface-2 text-fg-muted hover:text-fg')
-              }
+              className={cn(
+                'shrink-0 rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors',
+                cat === c
+                  ? 'border-primary bg-primary/15 text-primary'
+                  : 'border-border bg-secondary text-muted-foreground hover:text-foreground',
+              )}
             >
               {c}
             </button>
@@ -82,7 +83,7 @@ export function ExercisePicker({ open, onClose, onPick, excludeIds = [] }: Props
               <Spinner />
             </div>
           ) : filtered.length === 0 ? (
-            <p className="py-8 text-center text-sm text-fg-muted">No exercises match.</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">No exercises match.</p>
           ) : (
             filtered.map((e) => (
               <button
@@ -92,9 +93,9 @@ export function ExercisePicker({ open, onClose, onPick, excludeIds = [] }: Props
                   onPick(e)
                   onClose()
                 }}
-                className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left hover:bg-surface-2"
+                className="flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left hover:bg-secondary"
               >
-                <span className="text-sm font-medium text-fg">{e.name}</span>
+                <span className="text-sm font-medium text-foreground">{e.name}</span>
                 <Badge variant="muted">{e.category}</Badge>
               </button>
             ))

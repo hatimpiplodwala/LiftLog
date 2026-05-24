@@ -65,10 +65,10 @@ export function History() {
           </div>
         ) : !workouts || workouts.length === 0 ? (
           <Card className="text-center">
-            <p className="text-sm text-fg-muted">No workouts logged yet.</p>
+            <p className="text-sm text-muted-foreground">No workouts logged yet.</p>
             <Link
               to="/workout/new"
-              className="mt-3 inline-block text-sm font-semibold text-brand hover:underline"
+              className="mt-3 inline-block text-sm font-semibold text-primary hover:underline"
             >
               Start your first workout →
             </Link>
@@ -82,13 +82,13 @@ export function History() {
               days === 0 ? 'Today' : days === 1 ? 'Yesterday' : format(date, 'EEE, MMM d')
             return (
               <Link key={w.id} to={`/workout/${w.id}`}>
-                <Card className="flex items-center gap-3 hover:bg-surface-2">
+                <Card className="flex items-center gap-3 transition-colors hover:border-primary/40">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
-                      <h3 className="truncate text-sm font-bold">{w.name}</h3>
-                      <span className="shrink-0 text-xs text-fg-muted">{dateLabel}</span>
+                      <h3 className="truncate text-sm font-bold text-foreground">{w.name}</h3>
+                      <span className="shrink-0 text-xs text-muted-foreground">{dateLabel}</span>
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-fg-muted">
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                       <span>{formatDuration(workoutDurationSecs(w.started_at, w.finished_at))}</span>
                       <span>·</span>
                       <span>{s?.exerciseIds.size ?? 0} exercises</span>
@@ -104,7 +104,7 @@ export function History() {
                       )}
                     </div>
                   </div>
-                  <ChevronRightIcon className="shrink-0 text-fg-dim" size={18} />
+                  <ChevronRightIcon className="shrink-0 text-muted-foreground" size={18} />
                 </Card>
               </Link>
             )

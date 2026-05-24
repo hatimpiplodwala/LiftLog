@@ -140,6 +140,9 @@ export function useInsertSet() {
     },
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ['workout-sets', vars.workout_id] })
+      qc.invalidateQueries({ queryKey: ['exercise-pr', vars.exercise_id] })
+      qc.invalidateQueries({ queryKey: ['last-set', vars.exercise_id] })
+      qc.invalidateQueries({ queryKey: ['prev-session-sets', vars.exercise_id] })
     },
   })
 }
@@ -156,6 +159,8 @@ export function useUpdateSet() {
     },
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ['workout-sets', vars.workout_id] })
+      qc.invalidateQueries({ queryKey: ['exercise-pr'] })
+      qc.invalidateQueries({ queryKey: ['last-set'] })
     },
   })
 }
@@ -169,6 +174,8 @@ export function useDeleteSet() {
     },
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ['workout-sets', vars.workout_id] })
+      qc.invalidateQueries({ queryKey: ['exercise-pr'] })
+      qc.invalidateQueries({ queryKey: ['last-set'] })
     },
   })
 }

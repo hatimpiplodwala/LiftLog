@@ -5,13 +5,14 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { ChevronRightIcon, PlusIcon } from '@/components/layout/Icons'
+import { HeatmapCalendar } from '@/components/ui/HeatmapCalendar'
 import { useProfile } from '@/hooks/useProfile'
 import { useWorkouts } from '@/hooks/useWorkouts'
 import { useExercises } from '@/hooks/useExercises'
 import { supabase } from '@/lib/supabase'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
-import { formatWeight, formatDuration, workoutDurationSecs } from '@/lib/utils'
+import { cn, formatWeight, formatDuration, workoutDurationSecs } from '@/lib/utils'
 
 function useWeeklySetsTotal() {
   const { user } = useAuth()
@@ -51,7 +52,7 @@ function computeStreak(finishedAts: string[]): number {
 export function Dashboard() {
   const { data: profile } = useProfile()
   const units = profile?.units ?? 'kg'
-  const { data: workouts, isLoading } = useWorkouts({ finishedOnly: true, limit: 30 })
+  const { data: workouts, isLoading } = useWorkouts({ finishedOnly: true, limit: 120 })
   const { data: weekSets } = useWeeklySetsTotal()
   const { data: exercises } = useExercises()
 
@@ -68,22 +69,22 @@ export function Dashboard() {
   const recent = (workouts ?? []).slice(0, 3)
   const exMap = new Map((exercises ?? []).map((e) => [e.id, e.name]))
 
+  const greeting = profile?.username ? `Hey, ${profile.username}` : 'Hey, lifter'
+
   return (
     <div>
-      <PageHeader
-        title={`Hey${profile?.username ? `, ${profile.username}` : ''}`}
-        subtitle={format(new Date(), 'EEEE, MMM d')}
-      />
+      <PageHeader title={greeting} subtitle={format(new Date(), 'EEEE, MMM d')} />
 
       <div className="space-y-5 px-4 pb-8 sm:px-6">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <Stat label="This week" value={String(workoutsThisWeek.length)} unit="workouts" />
+          <Stat label="Volume" value={formatWeight(weeklyVolumeKg, units)} unit={units} />
           <Stat
-            label="Volume"
-            value={formatWeight(weeklyVolumeKg, units)}
-            unit={units}
+            label="Streak"
+            value={String(streak)}
+            unit={streak === 1 ? 'day' : 'days'}
+            highlight={streak > 0}
           />
-          <Stat label="Streak" value={String(streak)} unit={streak === 1 ? 'day' : 'days'} />
         </div>
 
         <Link to="/workout/new" className="block">
@@ -93,10 +94,25 @@ export function Dashboard() {
         </Link>
 
         <section>
+          <h2 className="mb-3 px-1 font-display text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            Consistency
+          </h2>
+          <Card className="px-3 py-4">
+            <HeatmapCalendar
+              finishedAts={(workouts ?? [])
+                .map((w) => w.finished_at)
+                .filter((d): d is string => !!d)}
+            />
+          </Card>
+        </section>
+
+        <section>
           <div className="mb-3 flex items-center justify-between px-1">
-            <h2 className="text-sm font-semibold text-fg-muted">Recent workouts</h2>
-            <Link to="/history" className="text-xs font-medium text-brand hover:underline">
-              View all
+            <h2 className="font-display text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              Recent workouts
+            </h2>
+            <Link to="/history" className="text-xs font-semibold text-primary hover:underline">
+              View all →
             </Link>
           </div>
 
@@ -106,7 +122,9 @@ export function Dashboard() {
             </div>
           ) : recent.length === 0 ? (
             <Card className="text-center">
-              <p className="text-sm text-fg-muted">No workouts yet. Tap "Start workout" above.</p>
+              <p className="text-sm text-muted-foreground">
+                No workouts yet. Tap "Start workout" above.
+              </p>
             </Card>
           ) : (
             <div className="space-y-2">
@@ -121,13 +139,32 @@ export function Dashboard() {
   )
 }
 
-function Stat({ label, value, unit }: { label: string; value: string; unit: string }) {
+function Stat({
+  label,
+  value,
+  unit,
+  highlight,
+}: {
+  label: string
+  value: string
+  unit: string
+  highlight?: boolean
+}) {
   return (
     <Card className="px-3 py-3">
-      <div className="text-xs font-medium text-fg-dim">{label}</div>
+      <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
       <div className="mt-1 flex items-baseline gap-1">
-        <span className="text-xl font-extrabold tabular-nums">{value}</span>
-        <span className="text-xs text-fg-muted">{unit}</span>
+        <span
+          className={cn(
+            'font-display text-2xl font-extrabold tabular-nums',
+            highlight ? 'text-primary' : 'text-foreground',
+          )}
+        >
+          {value}
+        </span>
+        <span className="text-xs text-muted-foreground">{unit}</span>
       </div>
     </Card>
   )
@@ -143,19 +180,18 @@ function RecentWorkoutCard({
   const date = new Date(workout.started_at)
   const today = new Date()
   const days = differenceInCalendarDays(today, date)
-  const label =
-    days === 0 ? 'Today' : days === 1 ? 'Yesterday' : format(date, 'EEE, MMM d')
+  const label = days === 0 ? 'Today' : days === 1 ? 'Yesterday' : format(date, 'EEE, MMM d')
 
   return (
     <Link to={`/workout/${workout.id}`}>
-      <Card className="flex items-center justify-between hover:bg-surface-2">
+      <Card className="flex items-center justify-between transition-colors hover:border-primary/40">
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold">{workout.name}</div>
-          <div className="mt-0.5 text-xs text-fg-muted">
+          <div className="truncate text-sm font-semibold text-foreground">{workout.name}</div>
+          <div className="mt-0.5 text-xs text-muted-foreground">
             {label} · {formatDuration(workoutDurationSecs(workout.started_at, workout.finished_at))}
           </div>
         </div>
-        <ChevronRightIcon className="text-fg-dim" size={18} />
+        <ChevronRightIcon className="text-muted-foreground" size={18} />
       </Card>
     </Link>
   )

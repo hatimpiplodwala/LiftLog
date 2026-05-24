@@ -28,43 +28,53 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="relative min-h-screen overflow-hidden">
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-grid-fade opacity-40" />
+
       <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-5 py-10">
         <Link to="/" className="mb-8 inline-flex items-center gap-2 self-start">
           <AppLogo size="md" />
-          <span className="text-lg font-bold tracking-tight">LiftLog</span>
+          <span className="font-display text-lg font-bold tracking-tight text-foreground">
+            LiftLog
+          </span>
         </Link>
 
-        <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-        <p className="mt-1 text-sm text-fg-muted">Log in to keep tracking your workouts.</p>
+        <div className="glass-strong rounded-xl p-6 sm:p-7">
+          <h1 className="font-display text-3xl font-extrabold tracking-tight">
+            Welcome <span className="text-primary">back.</span>
+          </h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Pick up where you left off.
+          </p>
 
-        <form onSubmit={onSubmit} className="mt-6 space-y-4">
-          <Input
-            label="Email"
-            type="email"
-            name="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <Input
-            label="Password"
-            type="password"
-            name="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <Button type="submit" fullWidth loading={loading}>
-            Log in
-          </Button>
-        </form>
+          <form onSubmit={onSubmit} className="mt-6 space-y-4">
+            <Input
+              label="Email"
+              type="email"
+              name="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <Input
+              label="Password"
+              type="password"
+              name="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <Button type="submit" fullWidth loading={loading}>
+              Log in
+            </Button>
+          </form>
+        </div>
 
-        <p className="mt-6 text-center text-sm text-fg-muted">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           No account yet?{' '}
-          <Link to="/signup" className="font-semibold text-brand hover:underline">
+          <Link to="/signup" className="font-semibold text-primary hover:underline">
             Sign up
           </Link>
         </p>

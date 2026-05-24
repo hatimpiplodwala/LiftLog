@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { cn } from '@/lib/utils'
 import { ArrowLeftIcon } from './Icons'
 
 interface PageHeaderProps {
@@ -6,24 +7,32 @@ interface PageHeaderProps {
   subtitle?: string
   back?: boolean
   right?: React.ReactNode
+  accent?: boolean
 }
 
-export function PageHeader({ title, subtitle, back, right }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, back, right, accent }: PageHeaderProps) {
   const navigate = useNavigate()
   return (
     <div className="flex items-center gap-3 px-4 pt-5 pb-4 sm:px-6 sm:pt-8">
       {back && (
         <button
           onClick={() => navigate(-1)}
-          className="-ml-1.5 rounded-lg p-1.5 text-fg-muted hover:bg-surface-2 hover:text-fg"
+          className="-ml-1.5 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           aria-label="Back"
         >
           <ArrowLeftIcon size={20} />
         </button>
       )}
-      <div className="flex-1">
-        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-        {subtitle && <p className="mt-0.5 text-sm text-fg-muted">{subtitle}</p>}
+      <div className="flex-1 min-w-0">
+        <h1
+          className={cn(
+            'font-display font-bold tracking-tight',
+            accent ? 'text-3xl text-primary' : 'text-2xl text-foreground',
+          )}
+        >
+          {title}
+        </h1>
+        {subtitle && <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>}
       </div>
       {right}
     </div>

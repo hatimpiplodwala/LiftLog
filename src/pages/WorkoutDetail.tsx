@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/Input'
 import { PlusIcon, ShareIcon, TrashIcon } from '@/components/layout/Icons'
 import { ExercisePicker } from '@/components/workout/ExercisePicker'
 import { SetRow } from '@/components/workout/SetRow'
+import { WorkoutNotes } from '@/components/workout/WorkoutNotes'
 import {
   useWorkout,
   useWorkoutSets,
@@ -22,7 +23,7 @@ import {
   useUpdateSet,
   useDeleteSet,
 } from '@/hooks/useWorkouts'
-import { useExercises } from '@/hooks/useExercises'
+import { useExercises, useExercisePR, isSetPR } from '@/hooks/useExercises'
 import { useProfile } from '@/hooks/useProfile'
 import { useCreateTemplate } from '@/hooks/useTemplates'
 import { formatWeight, formatDuration, workoutDurationSecs } from '@/lib/utils'
@@ -91,8 +92,8 @@ export function WorkoutDetail() {
   if (!workout) {
     return (
       <div className="px-6 py-10 text-center">
-        <p className="text-fg-muted">Workout not found.</p>
-        <Link to="/history" className="mt-4 inline-block text-sm font-semibold text-brand">
+        <p className="text-muted-foreground">Workout not found.</p>
+        <Link to="/history" className="mt-4 inline-block text-sm font-semibold text-primary">
           Back to history
         </Link>
       </div>
@@ -169,7 +170,7 @@ export function WorkoutDetail() {
               type="button"
               onClick={onShare}
               disabled={sharing}
-              className="rounded-lg p-2 text-fg-muted hover:bg-surface-2 hover:text-fg disabled:opacity-50"
+              className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-50"
               aria-label="Share"
             >
               <ShareIcon size={18} />
@@ -186,12 +187,12 @@ export function WorkoutDetail() {
         </div>
 
         {!isFinished && (
-          <Card className="border-brand/40 bg-brand-dim/15">
-            <p className="text-sm text-fg">
+          <Card className="border-primary/40 bg-primary/5">
+            <p className="text-sm text-foreground">
               This workout is still in progress.{' '}
               <Link
                 to={`/workout/${workout.id}/active`}
-                className="font-semibold text-brand hover:underline"
+                className="font-semibold text-primary hover:underline"
               >
                 Resume →
               </Link>
@@ -199,9 +200,11 @@ export function WorkoutDetail() {
           </Card>
         )}
 
+        <WorkoutNotes workoutId={workout.id} initialNotes={workout.notes} />
+
         {orderedExerciseIds.length === 0 ? (
           <Card className="text-center">
-            <p className="text-sm text-fg-muted">No exercises logged.</p>
+            <p className="text-sm text-muted-foreground">No exercises logged.</p>
           </Card>
         ) : (
           orderedExerciseIds.map((eid) => {
@@ -225,7 +228,7 @@ export function WorkoutDetail() {
         <button
           type="button"
           onClick={() => setPickerOpen(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-transparent py-4 text-sm font-semibold text-fg-muted hover:border-brand hover:text-brand"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-transparent py-4 text-sm font-semibold text-muted-foreground hover:border-primary hover:text-primary"
         >
           <PlusIcon size={18} /> Add exercise
         </button>
@@ -254,10 +257,10 @@ export function WorkoutDetail() {
       />
 
       <Modal open={shareOpen} onClose={() => setShareOpen(false)} title="Share link copied">
-        <p className="text-sm text-fg-muted">
+        <p className="text-sm text-muted-foreground">
           The public link to this workout has been copied to your clipboard.
         </p>
-        <p className="mt-3 break-all rounded-lg bg-surface-2 p-3 text-xs text-fg">
+        <p className="mt-3 break-all rounded-md bg-secondary p-3 text-xs text-foreground">
           {workout.share_token
             ? `${window.location.origin}/share/${workout.share_token}`
             : ''}
@@ -280,7 +283,7 @@ export function WorkoutDetail() {
             placeholder="e.g. Push Day A"
             autoFocus
           />
-          <div className="text-xs text-fg-muted">
+          <div className="text-xs text-muted-foreground">
             Saves {orderedExerciseIds.length} exercise
             {orderedExerciseIds.length === 1 ? '' : 's'}.
           </div>
@@ -296,8 +299,8 @@ export function WorkoutDetail() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <Card className="px-3 py-3">
-      <div className="text-[11px] font-medium uppercase text-fg-dim">{label}</div>
-      <div className="mt-1 text-base font-extrabold tabular-nums">{value}</div>
+      <div className="text-[11px] font-medium uppercase text-muted-foreground">{label}</div>
+      <div className="mt-1 text-base font-extrabold tabular-nums text-foreground">{value}</div>
     </Card>
   )
 }
@@ -318,13 +321,14 @@ function ExerciseSection({
   const insertSet = useInsertSet()
   const updateSet = useUpdateSet()
   const deleteSet = useDeleteSet()
+  const { data: pr } = useExercisePR(exercise.id)
   const nextSetNumber = sets.length + 1
 
   return (
-    <section className="space-y-2 rounded-2xl border border-border bg-surface p-3 sm:p-4">
+    <section className="glass space-y-2 rounded-lg p-3 sm:p-4">
       <div className="flex items-center justify-between gap-2 px-1">
         <div className="min-w-0">
-          <h3 className="truncate text-sm font-bold">{exercise.name}</h3>
+          <h3 className="truncate text-sm font-bold text-foreground">{exercise.name}</h3>
           <Badge variant="muted" className="mt-1">
             {exercise.category}
           </Badge>
@@ -333,7 +337,7 @@ function ExerciseSection({
           <button
             type="button"
             onClick={onRemoveEmpty}
-            className="rounded-md p-2 text-fg-dim hover:bg-surface-2 hover:text-danger"
+            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-destructive"
             aria-label="Remove exercise"
           >
             <TrashIcon size={16} />
@@ -349,6 +353,7 @@ function ExerciseSection({
             exerciseType={exercise.type}
             units={units}
             existing={s}
+            isPR={isSetPR(s, pr, exercise.type)}
             onSave={async (v) => {
               try {
                 await updateSet.mutateAsync({ id: s.id, workout_id: workoutId, updates: v })

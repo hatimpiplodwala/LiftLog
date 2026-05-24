@@ -13,7 +13,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="mb-1.5 block text-sm font-medium text-fg-muted">
+          <label
+            htmlFor={inputId}
+            className="mb-1.5 block text-sm font-medium text-muted-foreground"
+          >
             {label}
           </label>
         )}
@@ -21,16 +24,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={inputId}
           className={cn(
-            'h-11 w-full rounded-xl border border-border bg-surface px-4 text-fg placeholder:text-fg-dim',
-            'focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20',
-            'transition-colors',
-            error && 'border-danger focus:border-danger focus:ring-danger/20',
+            'flex h-11 w-full rounded-md border border-input bg-secondary/40 px-3 py-2 text-sm text-foreground',
+            'placeholder:text-muted-foreground transition-colors',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+            'disabled:cursor-not-allowed disabled:opacity-50',
+            error && 'border-destructive focus-visible:ring-destructive',
             className,
           )}
           {...props}
         />
         {(hint || error) && (
-          <p className={cn('mt-1.5 text-xs', error ? 'text-danger' : 'text-fg-dim')}>
+          <p className={cn('mt-1.5 text-xs', error ? 'text-destructive' : 'text-muted-foreground')}>
             {error ?? hint}
           </p>
         )}

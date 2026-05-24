@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
+import { cn } from '@/lib/utils'
 import type { Units } from '@/types/database.types'
 
 export function Profile() {
@@ -65,21 +66,27 @@ export function Profile() {
         <Card>
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-[11px] font-medium uppercase text-fg-dim">Signed in as</div>
-              <div className="mt-1 truncate text-sm font-semibold">{user?.email}</div>
+              <div className="text-[11px] font-medium uppercase text-muted-foreground">
+                Signed in as
+              </div>
+              <div className="mt-1 truncate text-sm font-semibold text-foreground">
+                {user?.email}
+              </div>
             </div>
             {profile && (
-              <div className="flex shrink-0 gap-1 rounded-lg bg-surface-2 p-1">
+              <div className="flex shrink-0 gap-1 rounded-md bg-secondary p-1">
                 {(['kg', 'lbs'] as Units[]).map((u) => (
                   <button
                     key={u}
                     type="button"
                     onClick={() => onPickUnits(u)}
                     disabled={updateProfile.isPending}
-                    className={
-                      'rounded-md px-3 py-1 text-xs font-bold uppercase transition-colors disabled:opacity-60 ' +
-                      (units === u ? 'bg-brand text-black' : 'text-fg-muted hover:text-fg')
-                    }
+                    className={cn(
+                      'rounded-sm px-3 py-1 text-xs font-bold uppercase transition-colors disabled:opacity-60',
+                      units === u
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground',
+                    )}
                   >
                     {u}
                   </button>
@@ -94,25 +101,22 @@ export function Profile() {
             <Spinner />
           </div>
         ) : (
-          <>
-            <Card className="space-y-4">
-              <Input
-                label="Display name"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Your name"
-              />
-              <Button
-                fullWidth
-                disabled={!dirty}
-                loading={updateProfile.isPending}
-                onClick={onSave}
-              >
-                Save changes
-              </Button>
-            </Card>
-
-</>
+          <Card className="space-y-4">
+            <Input
+              label="Display name"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Your name"
+            />
+            <Button
+              fullWidth
+              disabled={!dirty}
+              loading={updateProfile.isPending}
+              onClick={onSave}
+            >
+              Save changes
+            </Button>
+          </Card>
         )}
 
         <Button variant="secondary" fullWidth loading={signingOut} onClick={onSignOut}>

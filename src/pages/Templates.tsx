@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { Badge } from '@/components/ui/Badge'
 import { ChevronRightIcon, TrashIcon } from '@/components/layout/Icons'
+import { cn } from '@/lib/utils'
 import {
   useTemplates,
   useTemplateExercises,
@@ -32,8 +33,8 @@ export function Templates() {
           </div>
         ) : !templates || templates.length === 0 ? (
           <Card className="text-center">
-            <p className="text-sm text-fg-muted">No templates yet.</p>
-            <p className="mt-1 text-xs text-fg-dim">
+            <p className="text-sm text-muted-foreground">No templates yet.</p>
+            <p className="mt-1 text-xs text-muted-foreground">
               Finish a workout and tap "Save as template" to create one.
             </p>
           </Card>
@@ -92,32 +93,35 @@ function TemplateRow({
   }
 
   return (
-    <Card className="p-0 overflow-hidden">
+    <Card className="overflow-hidden p-0">
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-3 p-4 text-left hover:bg-surface-2"
+        className="flex w-full items-center justify-between gap-3 p-4 text-left hover:bg-secondary/40"
       >
         <div className="min-w-0">
-          <div className="truncate text-sm font-bold">{template.name}</div>
-          <div className="mt-0.5 text-xs text-fg-muted">
+          <div className="truncate text-sm font-bold text-foreground">{template.name}</div>
+          <div className="mt-0.5 text-xs text-muted-foreground">
             Created {format(new Date(template.created_at), 'MMM d, yyyy')}
           </div>
         </div>
         <ChevronRightIcon
-          className={`shrink-0 text-fg-dim transition-transform ${expanded ? 'rotate-90' : ''}`}
+          className={cn(
+            'shrink-0 text-muted-foreground transition-transform',
+            expanded && 'rotate-90',
+          )}
           size={18}
         />
       </button>
 
       {expanded && (
-        <div className="space-y-3 border-t border-border bg-surface-2/30 p-4">
+        <div className="space-y-3 border-t border-border bg-secondary/30 p-4">
           {!items ? (
             <div className="flex justify-center py-2">
               <Spinner />
             </div>
           ) : items.length === 0 ? (
-            <p className="text-sm text-fg-muted">No exercises in this template.</p>
+            <p className="text-sm text-muted-foreground">No exercises in this template.</p>
           ) : (
             <div className="space-y-1">
               {items.map((it, i) => {
@@ -125,10 +129,10 @@ function TemplateRow({
                 return (
                   <div
                     key={it.id}
-                    className="flex items-center justify-between rounded-lg bg-surface px-3 py-2 text-sm"
+                    className="flex items-center justify-between rounded-md bg-card px-3 py-2 text-sm"
                   >
-                    <span className="font-medium">
-                      <span className="mr-2 text-fg-dim tabular-nums">{i + 1}.</span>
+                    <span className="font-medium text-foreground">
+                      <span className="mr-2 text-muted-foreground tabular-nums">{i + 1}.</span>
                       {ex?.name ?? 'Unknown exercise'}
                     </span>
                     {ex && <Badge variant="muted">{ex.category}</Badge>}

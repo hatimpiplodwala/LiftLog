@@ -35,58 +35,66 @@ export function Signup() {
       navigate('/login', { replace: true })
       return
     }
-    toast.success('Welcome to LiftLog!')
+    toast.success('Welcome to LiftLog')
     navigate('/dashboard', { replace: true })
   }
 
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="relative min-h-screen overflow-hidden">
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-grid-fade opacity-40" />
+
       <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-5 py-10">
         <Link to="/" className="mb-8 inline-flex items-center gap-2 self-start">
           <AppLogo size="md" />
-          <span className="text-lg font-bold tracking-tight">LiftLog</span>
+          <span className="font-display text-lg font-bold tracking-tight text-foreground">
+            LiftLog
+          </span>
         </Link>
 
-        <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
-        <p className="mt-1 text-sm text-fg-muted">Start tracking in under a minute.</p>
+        <div className="glass-strong rounded-xl p-6 sm:p-7">
+          <h1 className="font-display text-3xl font-extrabold tracking-tight">
+            Create your <span className="text-primary">account.</span>
+          </h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">Free forever. Set up in under a minute.</p>
 
-        <form onSubmit={onSubmit} className="mt-6 space-y-4">
-          <Input
-            label="Display name"
-            type="text"
-            name="username"
-            autoComplete="nickname"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-          <Input
-            label="Email"
-            type="email"
-            name="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <Input
-            label="Password"
-            type="password"
-            name="password"
-            autoComplete="new-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            hint="At least 6 characters"
-            required
-          />
-          <Button type="submit" fullWidth loading={loading}>
-            Create account
-          </Button>
-        </form>
+          <form onSubmit={onSubmit} className="mt-6 space-y-4">
+            <Input
+              label="Display name"
+              type="text"
+              name="username"
+              autoComplete="nickname"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+            <Input
+              label="Email"
+              type="email"
+              name="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <Input
+              label="Password"
+              type="password"
+              name="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              hint="At least 6 characters"
+              required
+            />
+            <Button type="submit" fullWidth loading={loading}>
+              Create account
+            </Button>
+          </form>
+        </div>
 
-        <p className="mt-6 text-center text-sm text-fg-muted">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{' '}
-          <Link to="/login" className="font-semibold text-brand hover:underline">
+          <Link to="/login" className="font-semibold text-primary hover:underline">
             Log in
           </Link>
         </p>

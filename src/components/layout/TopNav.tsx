@@ -14,23 +14,25 @@ const links = [
 
 export function TopNav() {
   return (
-    <header className="sticky top-0 z-30 hidden border-b border-border bg-surface/95 backdrop-blur sm:block">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-        <Link to="/dashboard" className="flex items-center gap-2">
+    <header className="sticky top-0 z-30 hidden border-b border-border bg-background/80 backdrop-blur sm:block">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+        <Link to="/dashboard" className="flex shrink-0 items-center gap-2 group">
           <AppLogo size="sm" />
-          <span className="text-base font-bold tracking-tight">LiftLog</span>
+          <span className="hidden font-display text-base font-bold tracking-tight text-foreground md:inline">
+            LiftLog
+          </span>
         </Link>
-        <nav className="flex items-center gap-1">
+        <nav className="flex min-w-0 items-center gap-0.5 lg:gap-1">
           {links.map(({ to, label }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) =>
                 cn(
-                  'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                  'rounded-md px-2 py-1.5 text-sm font-medium transition-colors lg:px-3',
                   isActive
-                    ? 'bg-surface-2 text-fg'
-                    : 'text-fg-muted hover:bg-surface-2 hover:text-fg',
+                    ? 'bg-secondary text-foreground'
+                    : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground',
                 )
               }
             >

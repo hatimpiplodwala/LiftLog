@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { ChevronRightIcon, ListIcon, PlusIcon } from '@/components/layout/Icons'
+import { cn } from '@/lib/utils'
 import { useCreateWorkout } from '@/hooks/useWorkouts'
 import { useTemplates } from '@/hooks/useTemplates'
 
@@ -49,7 +50,9 @@ export function WorkoutNew() {
         </Card>
 
         <section>
-          <h2 className="mb-2 px-1 text-sm font-semibold text-fg-muted">Start from a template</h2>
+          <h2 className="mb-2 px-1 text-sm font-semibold text-muted-foreground">
+            Start from a template
+          </h2>
           {!templates ? (
             <div className="flex justify-center py-4">
               <Spinner />
@@ -57,12 +60,12 @@ export function WorkoutNew() {
           ) : templates.length === 0 ? (
             <Card>
               <div className="flex items-start gap-3">
-                <div className="rounded-lg bg-surface-2 p-2 text-fg-muted">
+                <div className="rounded-md bg-secondary p-2 text-muted-foreground">
                   <ListIcon size={18} />
                 </div>
                 <div className="flex-1">
-                  <div className="text-sm font-semibold">No templates yet</div>
-                  <p className="mt-0.5 text-xs text-fg-muted">
+                  <div className="text-sm font-semibold text-foreground">No templates yet</div>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     Save a workout as a template after you finish one.
                   </p>
                 </div>
@@ -77,20 +80,20 @@ export function WorkoutNew() {
                     key={t.id}
                     type="button"
                     onClick={() => setTemplateId(selected ? null : t.id)}
-                    className={
-                      'flex w-full items-center justify-between rounded-xl border p-4 text-left transition-colors ' +
-                      (selected
-                        ? 'border-brand bg-brand-dim/20'
-                        : 'border-border bg-surface hover:bg-surface-2')
-                    }
+                    className={cn(
+                      'flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors',
+                      selected
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border bg-card hover:bg-secondary/40',
+                    )}
                   >
                     <div>
-                      <div className="text-sm font-semibold">{t.name}</div>
-                      <div className="mt-0.5 text-xs text-fg-muted">
+                      <div className="text-sm font-semibold text-foreground">{t.name}</div>
+                      <div className="mt-0.5 text-xs text-muted-foreground">
                         {selected ? 'Selected · tap to deselect' : 'Tap to select'}
                       </div>
                     </div>
-                    <ChevronRightIcon className="text-fg-dim" size={18} />
+                    <ChevronRightIcon className="text-muted-foreground" size={18} />
                   </button>
                 )
               })}
@@ -102,7 +105,7 @@ export function WorkoutNew() {
           <Button size="lg" fullWidth loading={creating} onClick={start}>
             <PlusIcon size={18} /> Start workout
           </Button>
-          <p className="mt-3 text-center text-xs text-fg-dim">
+          <p className="mt-3 text-center text-xs text-muted-foreground">
             You can add or remove exercises any time during your session.
           </p>
         </div>

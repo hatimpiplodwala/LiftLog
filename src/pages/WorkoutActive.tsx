@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 import { Badge } from '@/components/ui/Badge'
-import { ArrowLeftIcon, PlusIcon, TrashIcon } from '@/components/layout/Icons'
+import { ArrowLeftIcon, ChevronDownIcon, ChevronUpIcon, PlusIcon, TrashIcon } from '@/components/layout/Icons'
 import { ExercisePicker } from '@/components/workout/ExercisePicker'
 import { SetRow } from '@/components/workout/SetRow'
+import { WorkoutNotes } from '@/components/workout/WorkoutNotes'
+import { RestTimer, getStoredRestDuration } from '@/components/workout/RestTimer'
 import {
   useWorkout,
   useWorkoutSets,
@@ -18,7 +20,13 @@ import {
   useUpdateSet,
   useDeleteSet,
 } from '@/hooks/useWorkouts'
-import { useExercises, useLastSetForExercise } from '@/hooks/useExercises'
+import {
+  useExercises,
+  useLastSetForExercise,
+  useExercisePR,
+  isSetPR,
+  usePreviousSessionSets,
+} from '@/hooks/useExercises'
 import { useProfile } from '@/hooks/useProfile'
 import { useTemplateExercises } from '@/hooks/useTemplates'
 import { formatWeight, formatDuration } from '@/lib/utils'
@@ -41,16 +49,39 @@ export function WorkoutActive() {
   const units: Units = profile?.units ?? 'kg'
 
   const [pickerOpen, setPickerOpen] = useState(false)
-  const [plannedIds, setPlannedIds] = useState<string[]>([])
+  const [exerciseOrder, setExerciseOrder] = useState<string[]>([])
   const [seededFromTemplate, setSeededFromTemplate] = useState(false)
   const [finishing, setFinishing] = useState(false)
+  const [restDuration, setRestDuration] = useState<number>(() => getStoredRestDuration())
+  const [restEndsAt, setRestEndsAt] = useState<number | null>(null)
+
+  function startRest() {
+    setRestEndsAt(Date.now() + restDuration * 1000)
+  }
 
   useEffect(() => {
     if (templateExercises && !seededFromTemplate) {
-      setPlannedIds(templateExercises.map((te) => te.exercise_id))
+      setExerciseOrder((cur) => {
+        const next = [...cur]
+        for (const te of templateExercises) {
+          if (!next.includes(te.exercise_id)) next.push(te.exercise_id)
+        }
+        return next
+      })
       setSeededFromTemplate(true)
     }
   }, [templateExercises, seededFromTemplate])
+
+  useEffect(() => {
+    if (!sets || sets.length === 0) return
+    setExerciseOrder((cur) => {
+      const next = [...cur]
+      for (const s of sets) {
+        if (!next.includes(s.exercise_id)) next.push(s.exercise_id)
+      }
+      return next
+    })
+  }, [sets])
 
   useEffect(() => {
     if (workout?.finished_at) {
@@ -63,23 +94,20 @@ export function WorkoutActive() {
     [exercises],
   )
 
-  const orderedExerciseIds = useMemo(() => {
-    const seen = new Set<string>()
-    const order: string[] = []
-    for (const eid of plannedIds) {
-      if (!seen.has(eid)) {
-        seen.add(eid)
-        order.push(eid)
-      }
-    }
-    for (const s of sets ?? []) {
-      if (!seen.has(s.exercise_id)) {
-        seen.add(s.exercise_id)
-        order.push(s.exercise_id)
-      }
-    }
-    return order
-  }, [plannedIds, sets])
+  const orderedExerciseIds = exerciseOrder
+
+  function moveExercise(exerciseId: string, dir: -1 | 1) {
+    setExerciseOrder((cur) => {
+      const i = cur.indexOf(exerciseId)
+      if (i < 0) return cur
+      const j = i + dir
+      if (j < 0 || j >= cur.length) return cur
+      const next = [...cur]
+      const [it] = next.splice(i, 1)
+      next.splice(j, 0, it)
+      return next
+    })
+  }
 
   const setsByExercise = useMemo(() => {
     const map = new Map<string, WorkoutSet[]>()
@@ -92,13 +120,13 @@ export function WorkoutActive() {
   }, [sets])
 
   function addExercise(e: Exercise) {
-    if (!plannedIds.includes(e.id) && !setsByExercise.has(e.id)) {
-      setPlannedIds((p) => [...p, e.id])
+    if (!exerciseOrder.includes(e.id)) {
+      setExerciseOrder((p) => [...p, e.id])
     }
   }
 
   function removeExerciseFromPlan(exerciseId: string) {
-    setPlannedIds((p) => p.filter((x) => x !== exerciseId))
+    setExerciseOrder((p) => p.filter((x) => x !== exerciseId))
   }
 
   async function finish() {
@@ -137,7 +165,7 @@ export function WorkoutActive() {
 
   if (wLoading || sLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-bg">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <Spinner />
       </div>
     )
@@ -145,8 +173,8 @@ export function WorkoutActive() {
 
   if (!workout) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-bg p-6 text-center">
-        <p className="text-fg-muted">Workout not found.</p>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background p-6 text-center">
+        <p className="text-muted-foreground">Workout not found.</p>
         <Link to="/dashboard">
           <Button>Back to dashboard</Button>
         </Link>
@@ -161,45 +189,47 @@ export function WorkoutActive() {
   )
 
   return (
-    <div className="min-h-screen bg-bg pb-32">
-      <header className="sticky top-0 z-30 border-b border-border bg-bg/95 backdrop-blur">
+    <div className="min-h-screen pb-32">
+      <header className="glass-strong sticky top-0 z-30 border-b border-border">
         <div className="mx-auto flex max-w-2xl items-center gap-2 px-3 py-3 sm:px-6">
           <button
             type="button"
             onClick={discard}
-            className="rounded-lg p-1.5 text-fg-muted hover:bg-surface-2 hover:text-fg"
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
             aria-label="Discard"
           >
             <ArrowLeftIcon size={20} />
           </button>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-base font-bold">{workout.name}</div>
+            <div className="truncate font-display text-base font-bold text-foreground">{workout.name}</div>
             <LiveDuration startedAt={workout.started_at} />
           </div>
           <Button size="sm" loading={finishing} onClick={finish}>
             Finish
           </Button>
         </div>
-        <div className="mx-auto flex max-w-2xl items-center justify-between gap-4 px-4 pb-3 text-xs text-fg-muted sm:px-6">
-          <span>{totalSets} sets</span>
-          <span>·</span>
-          <span className="flex-1">
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-4 px-4 pb-3 text-xs text-muted-foreground sm:px-6">
+          <span className="font-semibold tabular-nums text-primary">{totalSets} sets</span>
+          <span className="text-muted-foreground">·</span>
+          <span className="flex-1 tabular-nums">
             {formatWeight(totalVolumeKg, units)} {units} volume
           </span>
-          <span>{format(new Date(workout.started_at), 'MMM d, h:mm a')}</span>
+          <span className="text-muted-foreground">{format(new Date(workout.started_at), 'MMM d, h:mm a')}</span>
         </div>
       </header>
 
       <main className="mx-auto max-w-2xl space-y-4 px-3 py-4 sm:px-6">
+        <WorkoutNotes workoutId={workout.id} initialNotes={workout.notes} />
+
         {orderedExerciseIds.length === 0 && (
           <Card className="text-center">
-            <p className="text-sm text-fg-muted">
+            <p className="text-sm text-muted-foreground">
               No exercises yet. Tap "Add exercise" below to get started.
             </p>
           </Card>
         )}
 
-        {orderedExerciseIds.map((eid) => {
+        {orderedExerciseIds.map((eid, idx) => {
           const exercise = exMap.get(eid)
           if (!exercise) return null
           return (
@@ -209,7 +239,12 @@ export function WorkoutActive() {
               exercise={exercise}
               units={units}
               sets={setsByExercise.get(eid) ?? []}
+              canMoveUp={idx > 0}
+              canMoveDown={idx < orderedExerciseIds.length - 1}
+              onMoveUp={() => moveExercise(eid, -1)}
+              onMoveDown={() => moveExercise(eid, 1)}
               onRemoveEmpty={() => removeExerciseFromPlan(eid)}
+              onSetLogged={startRest}
             />
           )
         })}
@@ -217,7 +252,7 @@ export function WorkoutActive() {
         <button
           type="button"
           onClick={() => setPickerOpen(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-transparent py-4 text-sm font-semibold text-fg-muted hover:border-brand hover:text-brand"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-transparent py-4 text-sm font-semibold text-muted-foreground hover:border-primary hover:text-primary"
         >
           <PlusIcon size={18} /> Add exercise
         </button>
@@ -229,8 +264,35 @@ export function WorkoutActive() {
         onPick={addExercise}
         excludeIds={orderedExerciseIds}
       />
+
+      <RestTimer
+        endsAt={restEndsAt}
+        duration={restDuration}
+        onDurationChange={setRestDuration}
+        onDismiss={() => setRestEndsAt(null)}
+        onExtend={(extra) =>
+          setRestEndsAt((cur) => (cur != null ? cur + extra * 1000 : Date.now() + extra * 1000))
+        }
+      />
     </div>
   )
+}
+
+function formatPrevSet(
+  s: { reps: number | null; weight_kg: number | null; duration_secs: number | null },
+  type: 'strength' | 'bodyweight' | 'cardio',
+  units: Units,
+): string {
+  if (type === 'cardio') {
+    return s.duration_secs != null ? formatDuration(s.duration_secs) : '—'
+  }
+  if (type === 'bodyweight') {
+    return s.reps != null ? `${s.reps} reps` : '—'
+  }
+  if (s.weight_kg != null) {
+    return `${formatWeight(s.weight_kg, units)}${units} × ${s.reps ?? '?'}`
+  }
+  return s.reps != null ? `${s.reps} reps` : '—'
 }
 
 function LiveDuration({ startedAt }: { startedAt: string }) {
@@ -240,7 +302,7 @@ function LiveDuration({ startedAt }: { startedAt: string }) {
     return () => clearInterval(t)
   }, [])
   const secs = Math.max(0, Math.floor((now - new Date(startedAt).getTime()) / 1000))
-  return <div className="text-xs text-fg-muted tabular-nums">{formatDuration(secs)}</div>
+  return <div className="text-xs text-muted-foreground tabular-nums">{formatDuration(secs)}</div>
 }
 
 function ExerciseBlock({
@@ -248,52 +310,103 @@ function ExerciseBlock({
   exercise,
   units,
   sets,
+  canMoveUp,
+  canMoveDown,
+  onMoveUp,
+  onMoveDown,
   onRemoveEmpty,
+  onSetLogged,
 }: {
   workoutId: string
   exercise: Exercise
   units: Units
   sets: WorkoutSet[]
+  canMoveUp: boolean
+  canMoveDown: boolean
+  onMoveUp: () => void
+  onMoveDown: () => void
   onRemoveEmpty: () => void
+  onSetLogged: () => void
 }) {
   const insertSet = useInsertSet()
   const updateSet = useUpdateSet()
   const deleteSet = useDeleteSet()
   const { data: lastSet } = useLastSetForExercise(exercise.id)
+  const { data: pr } = useExercisePR(exercise.id)
+  const { data: prevSession } = usePreviousSessionSets(exercise.id, workoutId)
 
-  const hint = lastSet
-    ? lastSet.duration_secs != null
-      ? `Last: ${formatDuration(lastSet.duration_secs)}`
-      : lastSet.weight_kg != null
-        ? `Last: ${formatWeight(lastSet.weight_kg, units)}${units} × ${lastSet.reps ?? '?'}`
-        : lastSet.reps != null
-          ? `Last: ${lastSet.reps} reps`
-          : null
-    : null
+  const hint =
+    prevSession && prevSession.length > 0
+      ? null
+      : lastSet
+        ? lastSet.duration_secs != null
+          ? `Last: ${formatDuration(lastSet.duration_secs)}`
+          : lastSet.weight_kg != null
+            ? `Last: ${formatWeight(lastSet.weight_kg, units)}${units} × ${lastSet.reps ?? '?'}`
+            : lastSet.reps != null
+              ? `Last: ${lastSet.reps} reps`
+              : null
+        : null
 
   const nextSetNumber = sets.length + 1
 
   return (
-    <section className="space-y-2 rounded-2xl border border-border bg-surface p-3 sm:p-4">
+    <section className="glass space-y-2 rounded-lg p-3 sm:p-4">
       <div className="flex items-center justify-between gap-2 px-1">
         <div className="min-w-0">
-          <h3 className="truncate text-sm font-bold">{exercise.name}</h3>
+          <h3 className="truncate text-sm font-bold text-foreground">{exercise.name}</h3>
           <div className="mt-0.5 flex items-center gap-2">
             <Badge variant="muted">{exercise.category}</Badge>
-            {hint && <span className="text-[11px] text-fg-dim">{hint}</span>}
+            {hint && <span className="text-[11px] text-muted-foreground">{hint}</span>}
           </div>
         </div>
-        {sets.length === 0 && (
+        <div className="flex shrink-0 items-center">
           <button
             type="button"
-            onClick={onRemoveEmpty}
-            className="rounded-md p-2 text-fg-dim hover:bg-surface-2 hover:text-danger"
-            aria-label="Remove exercise"
+            onClick={onMoveUp}
+            disabled={!canMoveUp}
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+            aria-label="Move up"
           >
-            <TrashIcon size={16} />
+            <ChevronUpIcon size={16} />
           </button>
-        )}
+          <button
+            type="button"
+            onClick={onMoveDown}
+            disabled={!canMoveDown}
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+            aria-label="Move down"
+          >
+            <ChevronDownIcon size={16} />
+          </button>
+          {sets.length === 0 && (
+            <button
+              type="button"
+              onClick={onRemoveEmpty}
+              className="ml-1 rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-destructive"
+              aria-label="Remove exercise"
+            >
+              <TrashIcon size={16} />
+            </button>
+          )}
+        </div>
       </div>
+
+      {prevSession && prevSession.length > 0 && (
+        <div className="rounded-md border border-border bg-secondary/40 px-3 py-2">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Previous session
+          </div>
+          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground tabular-nums">
+            {prevSession.map((ps, i) => (
+              <span key={i}>
+                <span>{i + 1}.</span>{' '}
+                {formatPrevSet(ps, exercise.type, units)}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="space-y-1">
         {sets.map((s, i) => (
@@ -303,6 +416,7 @@ function ExerciseBlock({
             exerciseType={exercise.type}
             units={units}
             existing={s}
+            isPR={isSetPR(s, pr, exercise.type)}
             onSave={async (v) => {
               try {
                 await updateSet.mutateAsync({ id: s.id, workout_id: workoutId, updates: v })
@@ -334,6 +448,7 @@ function ExerciseBlock({
                 set_number: nextSetNumber,
                 ...v,
               })
+              onSetLogged()
             } catch (err) {
               toast.error(err instanceof Error ? err.message : 'Failed to log set')
             }

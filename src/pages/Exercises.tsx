@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { PlusIcon, SearchIcon, TrashIcon } from '@/components/layout/Icons'
+import { cn } from '@/lib/utils'
 import { useExercises, useCreateExercise, useDeleteExercise } from '@/hooks/useExercises'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Category, ExerciseType } from '@/types/database.types'
@@ -93,7 +94,7 @@ export function Exercises() {
         <div className="relative">
           <SearchIcon
             size={16}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-fg-dim"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
           />
           <Input
             value={search}
@@ -109,12 +110,12 @@ export function Exercises() {
               key={c}
               type="button"
               onClick={() => setCat(c)}
-              className={
-                'shrink-0 rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors ' +
-                (cat === c
-                  ? 'border-brand bg-brand-dim/30 text-brand'
-                  : 'border-border bg-surface-2 text-fg-muted hover:text-fg')
-              }
+              className={cn(
+                'shrink-0 rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors',
+                cat === c
+                  ? 'border-primary bg-primary/15 text-primary'
+                  : 'border-border bg-secondary text-muted-foreground hover:text-foreground',
+              )}
             >
               {c}
             </button>
@@ -127,7 +128,7 @@ export function Exercises() {
           </div>
         ) : filtered.length === 0 ? (
           <Card className="text-center">
-            <p className="text-sm text-fg-muted">No exercises match.</p>
+            <p className="text-sm text-muted-foreground">No exercises match.</p>
           </Card>
         ) : (
           <div className="space-y-1.5">
@@ -136,7 +137,7 @@ export function Exercises() {
               return (
                 <Card key={e.id} className="flex items-center justify-between gap-2 py-3">
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold">{e.name}</div>
+                    <div className="truncate text-sm font-semibold text-foreground">{e.name}</div>
                     <div className="mt-0.5 flex gap-1.5">
                       <Badge variant="muted">{e.category}</Badge>
                       <Badge variant="muted">{e.type}</Badge>
@@ -148,7 +149,7 @@ export function Exercises() {
                       type="button"
                       onClick={() => onDelete(e.id, e.name)}
                       disabled={deleteExercise.isPending}
-                      className="rounded-md p-2 text-fg-dim hover:bg-surface-2 hover:text-danger disabled:opacity-50"
+                      className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-destructive disabled:opacity-50"
                       aria-label="Delete"
                     >
                       <TrashIcon size={16} />
@@ -172,19 +173,19 @@ export function Exercises() {
           />
 
           <div>
-            <div className="mb-1.5 block text-sm font-medium text-fg-muted">Category</div>
+            <div className="mb-1.5 block text-sm font-medium text-muted-foreground">Category</div>
             <div className="flex flex-wrap gap-1.5">
               {CATEGORIES.filter((c): c is Category => c !== 'all').map((c) => (
                 <button
                   key={c}
                   type="button"
                   onClick={() => setNewCategory(c)}
-                  className={
-                    'rounded-full border px-3 py-1 text-xs font-medium capitalize ' +
-                    (newCategory === c
-                      ? 'border-brand bg-brand-dim/30 text-brand'
-                      : 'border-border bg-surface-2 text-fg-muted')
-                  }
+                  className={cn(
+                    'rounded-full border px-3 py-1 text-xs font-medium capitalize',
+                    newCategory === c
+                      ? 'border-primary bg-primary/15 text-primary'
+                      : 'border-border bg-secondary text-muted-foreground',
+                  )}
                 >
                   {c}
                 </button>
@@ -193,19 +194,19 @@ export function Exercises() {
           </div>
 
           <div>
-            <div className="mb-1.5 block text-sm font-medium text-fg-muted">Type</div>
+            <div className="mb-1.5 block text-sm font-medium text-muted-foreground">Type</div>
             <div className="flex gap-1.5">
               {TYPES.map((t) => (
                 <button
                   key={t}
                   type="button"
                   onClick={() => setNewType(t)}
-                  className={
-                    'flex-1 rounded-lg border px-3 py-2 text-sm font-medium capitalize ' +
-                    (newType === t
-                      ? 'border-brand bg-brand-dim/30 text-brand'
-                      : 'border-border bg-surface-2 text-fg-muted')
-                  }
+                  className={cn(
+                    'flex-1 rounded-md border px-3 py-2 text-sm font-medium capitalize',
+                    newType === t
+                      ? 'border-primary bg-primary/15 text-primary'
+                      : 'border-border bg-secondary text-muted-foreground',
+                  )}
                 >
                   {t}
                 </button>

@@ -11,9 +11,10 @@ interface Props {
   onSave: (values: { reps: number | null; weight_kg: number | null; duration_secs: number | null }) => void | Promise<void>
   onDelete?: () => void | Promise<void>
   busy?: boolean
+  isPR?: boolean
 }
 
-export function SetRow({ index, exerciseType, units, existing, onSave, onDelete, busy }: Props) {
+export function SetRow({ index, exerciseType, units, existing, onSave, onDelete, busy, isPR }: Props) {
   const initialWeight =
     existing?.weight_kg != null ? String(fromKg(existing.weight_kg, units)) : ''
   const initialReps = existing?.reps != null ? String(existing.reps) : ''
@@ -54,11 +55,11 @@ export function SetRow({ index, exerciseType, units, existing, onSave, onDelete,
   return (
     <div
       className={cn(
-        'flex items-center gap-2 rounded-lg px-2 py-2',
-        existing ? 'bg-surface-2/60' : 'bg-transparent',
+        'flex items-center gap-2 rounded-md px-2 py-2',
+        existing ? 'bg-secondary/60' : 'bg-transparent',
       )}
     >
-      <span className="w-6 shrink-0 text-center text-xs font-semibold text-fg-dim tabular-nums">
+      <span className="w-6 shrink-0 text-center text-xs font-semibold tabular-nums text-muted-foreground">
         {index}
       </span>
 
@@ -90,13 +91,23 @@ export function SetRow({ index, exerciseType, units, existing, onSave, onDelete,
         />
       )}
 
+      {existing && isPR && (
+        <span
+          title="Personal record"
+          aria-label="Personal record"
+          className="inline-flex h-6 shrink-0 items-center rounded-md border border-primary/50 bg-primary/15 px-1.5 text-[10px] font-bold uppercase tracking-wider text-primary"
+        >
+          PR
+        </span>
+      )}
+
       {existing ? (
         onDelete && (
           <button
             type="button"
             onClick={onDelete}
             disabled={busy}
-            className="rounded-md p-2 text-fg-dim hover:bg-surface hover:text-danger disabled:opacity-50"
+            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-destructive disabled:opacity-50"
             aria-label="Delete set"
           >
             <TrashIcon size={16} />
@@ -111,7 +122,7 @@ export function SetRow({ index, exerciseType, units, existing, onSave, onDelete,
             (showReps && !reps) ||
             (showDuration && !duration)
           }
-          className="inline-flex h-9 items-center gap-1 rounded-lg bg-brand px-3 text-xs font-semibold text-black transition-all active:scale-[0.97] disabled:bg-surface-2 disabled:text-fg-dim"
+          className="inline-flex h-9 items-center gap-1 rounded-md bg-primary px-3 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90 active:scale-[0.97] disabled:opacity-50"
         >
           <CheckIcon size={14} /> Log
         </button>
@@ -142,9 +153,9 @@ function NumField({
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         placeholder={placeholder}
-        className="h-10 w-full rounded-lg border border-border bg-surface px-3 pr-10 text-sm text-fg placeholder:text-fg-dim focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+        className="h-10 w-full rounded-md border border-input bg-secondary/40 px-3 pr-10 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
-      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-medium uppercase text-fg-dim">
+      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-medium uppercase text-muted-foreground">
         {suffix}
       </span>
     </div>
