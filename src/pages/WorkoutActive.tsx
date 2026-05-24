@@ -19,6 +19,7 @@ import {
   useInsertSet,
   useUpdateSet,
   useDeleteSet,
+  useWorkoutExerciseOrder,
 } from '@/hooks/useWorkouts'
 import {
   useExercises,
@@ -37,12 +38,14 @@ export function WorkoutActive() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const templateId = searchParams.get('templateId') ?? undefined
+  const repeatFrom = searchParams.get('repeatFrom') ?? undefined
 
   const { data: workout, isLoading: wLoading } = useWorkout(id)
   const { data: sets, isLoading: sLoading } = useWorkoutSets(id)
   const { data: exercises } = useExercises()
   const { data: profile } = useProfile()
   const { data: templateExercises } = useTemplateExercises(templateId)
+  const { data: repeatOrder } = useWorkoutExerciseOrder(repeatFrom)
   const updateWorkout = useUpdateWorkout()
   const deleteWorkout = useDeleteWorkout()
 
@@ -51,6 +54,7 @@ export function WorkoutActive() {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [exerciseOrder, setExerciseOrder] = useState<string[]>([])
   const [seededFromTemplate, setSeededFromTemplate] = useState(false)
+  const [seededFromRepeat, setSeededFromRepeat] = useState(false)
   const [finishing, setFinishing] = useState(false)
   const [restDuration, setRestDuration] = useState<number>(() => getStoredRestDuration())
   const [restEndsAt, setRestEndsAt] = useState<number | null>(null)
@@ -71,6 +75,19 @@ export function WorkoutActive() {
       setSeededFromTemplate(true)
     }
   }, [templateExercises, seededFromTemplate])
+
+  useEffect(() => {
+    if (repeatOrder && !seededFromRepeat) {
+      setExerciseOrder((cur) => {
+        const next = [...cur]
+        for (const eid of repeatOrder) {
+          if (!next.includes(eid)) next.push(eid)
+        }
+        return next
+      })
+      setSeededFromRepeat(true)
+    }
+  }, [repeatOrder, seededFromRepeat])
 
   useEffect(() => {
     if (!sets || sets.length === 0) return

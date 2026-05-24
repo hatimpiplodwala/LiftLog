@@ -39,6 +39,14 @@ export interface WorkoutSet {
   completed_at: string
 }
 
+export interface BodyWeightLog {
+  id: string
+  user_id: string
+  weight_kg: number
+  logged_at: string
+  notes: string | null
+}
+
 export interface WorkoutTemplate {
   id: string
   user_id: string
@@ -87,6 +95,14 @@ export interface Database {
         Row: WorkoutTemplate
         Insert: InsertOf<WorkoutTemplate>
         Update: Partial<WorkoutTemplate>
+      }
+      body_weight_logs: {
+        Row: BodyWeightLog
+        Insert: Omit<BodyWeightLog, 'id' | 'logged_at'> & {
+          id?: string
+          logged_at?: string
+        }
+        Update: Partial<BodyWeightLog>
       }
       template_exercises: {
         Row: TemplateExercise

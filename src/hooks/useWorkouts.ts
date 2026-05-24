@@ -55,6 +55,30 @@ export function useWorkoutByShareToken(token: string | undefined) {
   })
 }
 
+export function useWorkoutExerciseOrder(workoutId: string | undefined) {
+  return useQuery({
+    enabled: !!workoutId,
+    queryKey: ['workout-exercise-order', workoutId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('workout_sets')
+        .select('exercise_id, set_number, completed_at')
+        .eq('workout_id', workoutId!)
+        .order('completed_at', { ascending: true })
+      if (error) throw error
+      const seen = new Set<string>()
+      const order: string[] = []
+      for (const row of (data ?? []) as { exercise_id: string }[]) {
+        if (!seen.has(row.exercise_id)) {
+          seen.add(row.exercise_id)
+          order.push(row.exercise_id)
+        }
+      }
+      return order
+    },
+  })
+}
+
 export function useWorkoutSets(workoutId: string | undefined) {
   return useQuery({
     enabled: !!workoutId,

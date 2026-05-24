@@ -29,11 +29,12 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfile } from '@/hooks/useProfile'
 import { useExercises } from '@/hooks/useExercises'
+import { useBodyWeights } from '@/hooks/useBodyWeight'
 import { cn, fromKg } from '@/lib/utils'
 import type { Category, Exercise, Units } from '@/types/database.types'
 
 type Bucket = 'weekly' | 'monthly'
-type Mode = 'volume' | 'exercise' | 'muscle'
+type Mode = 'volume' | 'exercise' | 'muscle' | 'bodyweight'
 
 interface SetRow {
   reps: number | null
@@ -232,6 +233,23 @@ export function Progress() {
 
   const { data: exSets, isLoading: exLoading } = useExerciseSets(selectedExercise?.id ?? null)
   const { data: muscleSets, isLoading: muscleLoading } = useMuscleSets()
+  const { data: bodyWeights, isLoading: bwLoading } = useBodyWeights()
+
+  const bodyWeightPoints = useMemo(() => {
+    if (!bodyWeights) return [] as { label: string; weight: number; ts: number }[]
+    return [...bodyWeights]
+      .sort((a, b) => new Date(a.logged_at).getTime() - new Date(b.logged_at).getTime())
+      .map((l) => ({
+        label: format(new Date(l.logged_at), 'MMM d'),
+        weight: Math.round(fromKg(l.weight_kg, units) * 10) / 10,
+        ts: new Date(l.logged_at).getTime(),
+      }))
+  }, [bodyWeights, units])
+  const bwLatest = bodyWeightPoints.length
+    ? bodyWeightPoints[bodyWeightPoints.length - 1].weight
+    : 0
+  const bwFirst = bodyWeightPoints.length ? bodyWeightPoints[0].weight : 0
+  const bwDelta = Math.round((bwLatest - bwFirst) * 10) / 10
 
   const points = useMemo(() => buildBuckets(sets ?? [], bucket, units), [sets, bucket, units])
   const total = points.reduce((s, p) => s + p.volume, 0)
@@ -285,19 +303,25 @@ export function Progress() {
 
       <div className="space-y-4 px-4 pb-10 sm:px-6">
         <div className="flex gap-1 rounded-md bg-secondary p-1">
-          {(['volume', 'exercise', 'muscle'] as Mode[]).map((m) => (
+          {(['volume', 'exercise', 'muscle', 'bodyweight'] as Mode[]).map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => setMode(m)}
               className={cn(
-                'flex-1 rounded-sm py-1.5 text-sm font-medium capitalize transition-colors',
+                'flex-1 rounded-sm py-1.5 text-xs font-medium capitalize transition-colors sm:text-sm',
                 mode === m
                   ? 'bg-card text-foreground'
                   : 'text-muted-foreground hover:text-foreground',
               )}
             >
-              {m === 'volume' ? 'Total' : m === 'exercise' ? 'Exercise' : 'Muscle'}
+              {m === 'volume'
+                ? 'Total'
+                : m === 'exercise'
+                  ? 'Exercise'
+                  : m === 'muscle'
+                    ? 'Muscle'
+                    : 'Body'}
             </button>
           ))}
         </div>
@@ -519,7 +543,7 @@ export function Progress() {
               </div>
             )}
           </>
-        ) : (
+        ) : mode === 'muscle' ? (
           <>
             <div className="grid grid-cols-2 gap-2">
               <Stat
@@ -610,6 +634,87 @@ export function Progress() {
             <p className="px-1 text-xs text-muted-foreground">
               Weekly volume broken down by muscle group, in {units}. Cardio-type exercises only
               register when both reps and weight are logged.
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-2">
+              <Stat
+                label="Latest"
+                value={bwLatest > 0 ? String(bwLatest) : '—'}
+                unit={bwLatest > 0 ? units : ''}
+              />
+              <Stat
+                label="Change"
+                value={
+                  bodyWeightPoints.length < 2
+                    ? '—'
+                    : `${bwDelta > 0 ? '+' : ''}${bwDelta}`
+                }
+                unit={bodyWeightPoints.length >= 2 ? units : ''}
+              />
+            </div>
+
+            <Card className="px-2 py-4">
+              {bwLoading ? (
+                <div className="flex h-56 items-center justify-center">
+                  <Spinner />
+                </div>
+              ) : bodyWeightPoints.length === 0 ? (
+                <div className="flex h-56 flex-col items-center justify-center gap-1 text-center">
+                  <p className="text-sm font-medium text-foreground">No body weight logged</p>
+                  <p className="text-xs text-muted-foreground">
+                    Log entries from your Profile page to see the trend.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ width: '100%', height: 240 }}>
+                  <ResponsiveContainer>
+                    <LineChart
+                      data={bodyWeightPoints}
+                      margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                    >
+                      <CartesianGrid stroke={CHART_GRID} vertical={false} />
+                      <XAxis
+                        dataKey="label"
+                        tick={{ fill: CHART_AXIS, fontSize: 11 }}
+                        tickLine={false}
+                        axisLine={{ stroke: CHART_GRID }}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis
+                        tick={{ fill: CHART_AXIS, fontSize: 11 }}
+                        tickLine={false}
+                        axisLine={false}
+                        width={50}
+                        domain={['auto', 'auto']}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          background: CHART_TOOLTIP_BG,
+                          border: `1px solid ${CHART_TOOLTIP_BORDER}`,
+                          borderRadius: 8,
+                          fontSize: 12,
+                        }}
+                        labelStyle={{ color: CHART_AXIS }}
+                        formatter={(value: number) => [`${value} ${units}`, 'Weight']}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="weight"
+                        stroke={CHART_PRIMARY}
+                        strokeWidth={2}
+                        dot={{ fill: CHART_PRIMARY, r: 3, strokeWidth: 0 }}
+                        activeDot={{ r: 5 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </Card>
+
+            <p className="px-1 text-xs text-muted-foreground">
+              Trend across all your logged body weight entries, in {units}.
             </p>
           </>
         )}

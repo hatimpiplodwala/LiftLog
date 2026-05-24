@@ -1,13 +1,15 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { format, startOfWeek, isAfter, differenceInCalendarDays } from 'date-fns'
+import toast from 'react-hot-toast'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
-import { ChevronRightIcon, PlusIcon } from '@/components/layout/Icons'
+import { ChevronRightIcon, PlusIcon, RepeatIcon } from '@/components/layout/Icons'
 import { HeatmapCalendar } from '@/components/ui/HeatmapCalendar'
 import { useProfile } from '@/hooks/useProfile'
-import { useWorkouts } from '@/hooks/useWorkouts'
+import { useWorkouts, useCreateWorkout } from '@/hooks/useWorkouts'
 import { useExercises } from '@/hooks/useExercises'
 import { supabase } from '@/lib/supabase'
 import { useQuery } from '@tanstack/react-query'
@@ -50,11 +52,30 @@ function computeStreak(finishedAts: string[]): number {
 }
 
 export function Dashboard() {
+  const navigate = useNavigate()
   const { data: profile } = useProfile()
   const units = profile?.units ?? 'kg'
   const { data: workouts, isLoading } = useWorkouts({ finishedOnly: true, limit: 120 })
   const { data: weekSets } = useWeeklySetsTotal()
   const { data: exercises } = useExercises()
+  const createWorkout = useCreateWorkout()
+  const [repeating, setRepeating] = useState(false)
+
+  const lastWorkout = (workouts ?? [])[0]
+  async function repeatLast() {
+    if (!lastWorkout || repeating) return
+    setRepeating(true)
+    try {
+      const name = `Session — ${format(new Date(), 'MMM d')}`
+      const created = await createWorkout.mutateAsync({ name })
+      navigate(`/workout/${created.id}/active?repeatFrom=${lastWorkout.id}`, {
+        replace: true,
+      })
+    } catch (err) {
+      setRepeating(false)
+      toast.error(err instanceof Error ? err.message : 'Failed to start workout')
+    }
+  }
 
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
   const workoutsThisWeek = (workouts ?? []).filter(
@@ -92,6 +113,18 @@ export function Dashboard() {
             <PlusIcon size={20} /> Start workout
           </Button>
         </Link>
+
+        {lastWorkout && (
+          <Button
+            size="md"
+            variant="secondary"
+            fullWidth
+            loading={repeating}
+            onClick={repeatLast}
+          >
+            <RepeatIcon size={16} /> Repeat last · {lastWorkout.name}
+          </Button>
+        )}
 
         <section>
           <h2 className="mb-3 px-1 font-display text-sm font-bold uppercase tracking-wider text-muted-foreground">
