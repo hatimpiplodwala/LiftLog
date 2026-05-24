@@ -55,17 +55,21 @@ interface MuscleSetRow {
   exercises: { category: Category }
 }
 
+// Server-bounded to prevent unbounded growth; day-granular sinceKey keeps the cache stable within a session.
 function useVolumeSets() {
   const { user } = useAuth()
+  const since = subMonths(new Date(), 6)
+  const sinceKey = format(since, 'yyyy-MM-dd')
   return useQuery({
     enabled: !!user,
-    queryKey: ['volume-sets', user?.id],
+    queryKey: ['volume-sets', user?.id, sinceKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workout_sets')
         .select('reps, weight_kg, workouts!inner(user_id, finished_at)')
         .eq('workouts.user_id', user!.id)
         .not('workouts.finished_at', 'is', null)
+        .gte('workouts.finished_at', since.toISOString())
       if (error) throw error
       return data as unknown as SetRow[]
     },
@@ -74,9 +78,11 @@ function useVolumeSets() {
 
 function useMuscleSets() {
   const { user } = useAuth()
+  const since = subWeeks(new Date(), 12)
+  const sinceKey = format(since, 'yyyy-MM-dd')
   return useQuery({
     enabled: !!user,
-    queryKey: ['muscle-sets', user?.id],
+    queryKey: ['muscle-sets', user?.id, sinceKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workout_sets')
@@ -85,6 +91,7 @@ function useMuscleSets() {
         )
         .eq('workouts.user_id', user!.id)
         .not('workouts.finished_at', 'is', null)
+        .gte('workouts.finished_at', since.toISOString())
       if (error) throw error
       return data as unknown as MuscleSetRow[]
     },

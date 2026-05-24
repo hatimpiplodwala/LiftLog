@@ -46,6 +46,7 @@ export function WorkoutDetail() {
   const [templateOpen, setTemplateOpen] = useState(false)
   const [templateName, setTemplateName] = useState('')
   const [sharing, setSharing] = useState(false)
+  const [revoking, setRevoking] = useState(false)
 
   const units: Units = profile?.units ?? 'kg'
 
@@ -135,6 +136,24 @@ export function WorkoutDetail() {
       toast.error(err instanceof Error ? err.message : 'Failed to share')
     } finally {
       setSharing(false)
+    }
+  }
+
+  async function onRevokeShare() {
+    if (!workout?.share_token) return
+    if (!confirm('Revoke this share link? Anyone with the old URL will get a 404.')) return
+    setRevoking(true)
+    try {
+      await updateWorkout.mutateAsync({
+        id: workout.id,
+        updates: { share_token: null },
+      })
+      setShareOpen(false)
+      toast.success('Share link revoked')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to revoke')
+    } finally {
+      setRevoking(false)
     }
   }
 
@@ -265,7 +284,15 @@ export function WorkoutDetail() {
             ? `${window.location.origin}/share/${workout.share_token}`
             : ''}
         </p>
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex justify-end gap-2">
+          <Button
+            variant="danger"
+            onClick={onRevokeShare}
+            loading={revoking}
+            disabled={!workout.share_token}
+          >
+            Revoke link
+          </Button>
           <Button onClick={() => setShareOpen(false)}>Done</Button>
         </div>
       </Modal>
@@ -356,14 +383,23 @@ function ExerciseSection({
             isPR={isSetPR(s, pr, exercise.type)}
             onSave={async (v) => {
               try {
-                await updateSet.mutateAsync({ id: s.id, workout_id: workoutId, updates: v })
+                await updateSet.mutateAsync({
+                  id: s.id,
+                  workout_id: workoutId,
+                  exercise_id: exercise.id,
+                  updates: v,
+                })
               } catch (err) {
                 toast.error(err instanceof Error ? err.message : 'Failed to save')
               }
             }}
             onDelete={async () => {
               try {
-                await deleteSet.mutateAsync({ id: s.id, workout_id: workoutId })
+                await deleteSet.mutateAsync({
+                  id: s.id,
+                  workout_id: workoutId,
+                  exercise_id: exercise.id,
+                })
               } catch (err) {
                 toast.error(err instanceof Error ? err.message : 'Failed to delete')
               }

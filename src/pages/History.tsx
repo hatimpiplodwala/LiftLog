@@ -7,7 +7,6 @@ import { Spinner } from '@/components/ui/Spinner'
 import { ChevronRightIcon } from '@/components/layout/Icons'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/contexts/AuthContext'
 import { useWorkouts } from '@/hooks/useWorkouts'
 import { useProfile } from '@/hooks/useProfile'
 import { formatWeight, formatDuration, workoutDurationSecs } from '@/lib/utils'
@@ -19,19 +18,24 @@ interface SetSummary {
   weight_kg: number | null
 }
 
-function useAllUserSets() {
-  const { user } = useAuth()
+// Scoped to the workouts the page actually renders (limit: 100) so total
+// payload stays bounded as the user accumulates history. Sorted IDs in the
+// queryKey keep the cache stable across renders that produce the same set.
+function useSetsForWorkouts(workoutIds: string[] | undefined) {
+  const key = useMemo(
+    () => (workoutIds ? [...workoutIds].sort() : undefined),
+    [workoutIds],
+  )
   return useQuery({
-    enabled: !!user,
-    queryKey: ['history-sets', user?.id],
+    enabled: !!key && key.length > 0,
+    queryKey: ['history-sets', key],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workout_sets')
-        .select('workout_id, exercise_id, reps, weight_kg, workouts!inner(user_id, finished_at)')
-        .eq('workouts.user_id', user!.id)
-        .not('workouts.finished_at', 'is', null)
+        .select('workout_id, exercise_id, reps, weight_kg')
+        .in('workout_id', key!)
       if (error) throw error
-      return data as unknown as SetSummary[]
+      return data as SetSummary[]
     },
   })
 }
@@ -40,7 +44,8 @@ export function History() {
   const { data: profile } = useProfile()
   const units = profile?.units ?? 'kg'
   const { data: workouts, isLoading } = useWorkouts({ finishedOnly: true, limit: 100 })
-  const { data: sets } = useAllUserSets()
+  const workoutIds = useMemo(() => (workouts ?? []).map((w) => w.id), [workouts])
+  const { data: sets } = useSetsForWorkouts(workoutIds)
 
   const summary = useMemo(() => {
     const map = new Map<string, { volumeKg: number; setCount: number; exerciseIds: Set<string> }>()

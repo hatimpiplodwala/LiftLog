@@ -314,11 +314,12 @@ function formatPrevSet(
 
 function LiveDuration({ startedAt }: { startedAt: string }) {
   const [now, setNow] = useState(Date.now())
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 30_000)
-    return () => clearInterval(t)
-  }, [])
   const secs = Math.max(0, Math.floor((now - new Date(startedAt).getTime()) / 1000))
+  const isShortDuration = secs < 3600
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), isShortDuration ? 1000 : 30_000)
+    return () => clearInterval(t)
+  }, [isShortDuration])
   return <div className="text-xs text-muted-foreground tabular-nums">{formatDuration(secs)}</div>
 }
 
@@ -436,14 +437,23 @@ function ExerciseBlock({
             isPR={isSetPR(s, pr, exercise.type)}
             onSave={async (v) => {
               try {
-                await updateSet.mutateAsync({ id: s.id, workout_id: workoutId, updates: v })
+                await updateSet.mutateAsync({
+                  id: s.id,
+                  workout_id: workoutId,
+                  exercise_id: exercise.id,
+                  updates: v,
+                })
               } catch (err) {
                 toast.error(err instanceof Error ? err.message : 'Failed to save')
               }
             }}
             onDelete={async () => {
               try {
-                await deleteSet.mutateAsync({ id: s.id, workout_id: workoutId })
+                await deleteSet.mutateAsync({
+                  id: s.id,
+                  workout_id: workoutId,
+                  exercise_id: exercise.id,
+                })
               } catch (err) {
                 toast.error(err instanceof Error ? err.message : 'Failed to delete')
               }

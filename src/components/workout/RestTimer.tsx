@@ -62,7 +62,11 @@ export function RestTimer({ endsAt, duration, onDurationChange, onDismiss, onExt
 
   useEffect(() => {
     if (endsAt == null) return
-    const t = setInterval(() => setNow(Date.now()), 250)
+    const t = setInterval(() => {
+      const tick = Date.now()
+      setNow(tick)
+      if (tick >= endsAt) clearInterval(t)
+    }, 250)
     return () => clearInterval(t)
   }, [endsAt])
 

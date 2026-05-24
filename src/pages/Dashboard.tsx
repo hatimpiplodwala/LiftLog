@@ -9,7 +9,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { ChevronRightIcon, PlusIcon, RepeatIcon } from '@/components/layout/Icons'
 import { HeatmapCalendar } from '@/components/ui/HeatmapCalendar'
 import { useProfile } from '@/hooks/useProfile'
-import { useWorkouts, useCreateWorkout } from '@/hooks/useWorkouts'
+import { useWorkouts, useCreateWorkout, useFinishedAts } from '@/hooks/useWorkouts'
 import { useExercises } from '@/hooks/useExercises'
 import { supabase } from '@/lib/supabase'
 import { useQuery } from '@tanstack/react-query'
@@ -35,6 +35,7 @@ function useWeeklySetsTotal() {
   })
 }
 
+// Local-tz date keys so a workout at 23:30 counts today, not tomorrow. Must match HeatmapCalendar.
 function computeStreak(finishedAts: string[]): number {
   if (finishedAts.length === 0) return 0
   const dateSet = new Set(finishedAts.map((d) => format(new Date(d), 'yyyy-MM-dd')))
@@ -55,7 +56,8 @@ export function Dashboard() {
   const navigate = useNavigate()
   const { data: profile } = useProfile()
   const units = profile?.units ?? 'kg'
-  const { data: workouts, isLoading } = useWorkouts({ finishedOnly: true, limit: 120 })
+  const { data: workouts, isLoading } = useWorkouts({ finishedOnly: true, limit: 12 })
+  const { data: finishedAts } = useFinishedAts()
   const { data: weekSets } = useWeeklySetsTotal()
   const { data: exercises } = useExercises()
   const createWorkout = useCreateWorkout()
@@ -68,9 +70,7 @@ export function Dashboard() {
     try {
       const name = `Session — ${format(new Date(), 'MMM d')}`
       const created = await createWorkout.mutateAsync({ name })
-      navigate(`/workout/${created.id}/active?repeatFrom=${lastWorkout.id}`, {
-        replace: true,
-      })
+      navigate(`/workout/${created.id}/active?repeatFrom=${lastWorkout.id}`)
     } catch (err) {
       setRepeating(false)
       toast.error(err instanceof Error ? err.message : 'Failed to start workout')
@@ -86,7 +86,7 @@ export function Dashboard() {
     (sum, s) => sum + (s.reps ?? 0) * (s.weight_kg ?? 0),
     0,
   )
-  const streak = computeStreak((workouts ?? []).map((w) => w.finished_at!).filter(Boolean))
+  const streak = computeStreak(finishedAts ?? [])
   const recent = (workouts ?? []).slice(0, 3)
   const exMap = new Map((exercises ?? []).map((e) => [e.id, e.name]))
 
@@ -131,11 +131,7 @@ export function Dashboard() {
             Consistency
           </h2>
           <Card className="px-3 py-4">
-            <HeatmapCalendar
-              finishedAts={(workouts ?? [])
-                .map((w) => w.finished_at)
-                .filter((d): d is string => !!d)}
-            />
+            <HeatmapCalendar finishedAts={finishedAts ?? []} />
           </Card>
         </section>
 

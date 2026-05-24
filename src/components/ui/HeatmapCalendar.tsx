@@ -10,7 +10,9 @@ interface Props {
 const DAY_LABELS = ['M', '', 'W', '', 'F', '', 'S']
 
 export function HeatmapCalendar({ finishedAts, weeks = 12 }: Props) {
-  const today = new Date()
+  // Stable key so memos only invalidate when the calendar day rolls over.
+  const todayKey = format(new Date(), 'yyyy-MM-dd')
+  const today = useMemo(() => new Date(todayKey + 'T00:00:00'), [todayKey])
 
   const countByDay = useMemo(() => {
     const map = new Map<string, number>()

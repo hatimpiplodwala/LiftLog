@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { format, subMonths } from 'date-fns'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Workout, WorkoutSet } from '@/types/database.types'
@@ -23,6 +24,28 @@ export function useWorkouts(opts?: { limit?: number; finishedOnly?: boolean }) {
   })
 }
 
+// Timestamps only — keeps Dashboard streak + heatmap from pulling full workout rows.
+export function useFinishedAts() {
+  const { user } = useAuth()
+  const since = subMonths(new Date(), 12)
+  const sinceKey = format(since, 'yyyy-MM-dd')
+  return useQuery({
+    enabled: !!user,
+    queryKey: ['finished-ats', user?.id, sinceKey],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('workouts')
+        .select('finished_at')
+        .eq('user_id', user!.id)
+        .not('finished_at', 'is', null)
+        .gte('finished_at', since.toISOString())
+        .order('finished_at', { ascending: false })
+      if (error) throw error
+      return (data ?? []).map((r) => r.finished_at as string)
+    },
+  })
+}
+
 export function useWorkout(id: string | undefined) {
   return useQuery({
     enabled: !!id,
@@ -32,22 +55,6 @@ export function useWorkout(id: string | undefined) {
         .from('workouts')
         .select('*')
         .eq('id', id!)
-        .single()
-      if (error) throw error
-      return data as Workout
-    },
-  })
-}
-
-export function useWorkoutByShareToken(token: string | undefined) {
-  return useQuery({
-    enabled: !!token,
-    queryKey: ['workout-share', token],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workouts')
-        .select('*')
-        .eq('share_token', token!)
         .single()
       if (error) throw error
       return data as Workout
@@ -164,7 +171,7 @@ export function useInsertSet() {
     },
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ['workout-sets', vars.workout_id] })
-      qc.invalidateQueries({ queryKey: ['exercise-pr', vars.exercise_id] })
+      qc.invalidateQueries({ queryKey: ['exercise-prs'] })
       qc.invalidateQueries({ queryKey: ['last-set', vars.exercise_id] })
       qc.invalidateQueries({ queryKey: ['prev-session-sets', vars.exercise_id] })
     },
@@ -174,7 +181,12 @@ export function useInsertSet() {
 export function useUpdateSet() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (args: { id: string; updates: Partial<WorkoutSet>; workout_id: string }) => {
+    mutationFn: async (args: {
+      id: string
+      updates: Partial<WorkoutSet>
+      workout_id: string
+      exercise_id: string
+    }) => {
       const { error } = await supabase
         .from('workout_sets')
         .update(args.updates)
@@ -183,8 +195,9 @@ export function useUpdateSet() {
     },
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ['workout-sets', vars.workout_id] })
-      qc.invalidateQueries({ queryKey: ['exercise-pr'] })
-      qc.invalidateQueries({ queryKey: ['last-set'] })
+      qc.invalidateQueries({ queryKey: ['exercise-prs'] })
+      qc.invalidateQueries({ queryKey: ['last-set', vars.exercise_id] })
+      qc.invalidateQueries({ queryKey: ['prev-session-sets', vars.exercise_id] })
     },
   })
 }
@@ -192,14 +205,15 @@ export function useUpdateSet() {
 export function useDeleteSet() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (args: { id: string; workout_id: string }) => {
+    mutationFn: async (args: { id: string; workout_id: string; exercise_id: string }) => {
       const { error } = await supabase.from('workout_sets').delete().eq('id', args.id)
       if (error) throw error
     },
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ['workout-sets', vars.workout_id] })
-      qc.invalidateQueries({ queryKey: ['exercise-pr'] })
-      qc.invalidateQueries({ queryKey: ['last-set'] })
+      qc.invalidateQueries({ queryKey: ['exercise-prs'] })
+      qc.invalidateQueries({ queryKey: ['last-set', vars.exercise_id] })
+      qc.invalidateQueries({ queryKey: ['prev-session-sets', vars.exercise_id] })
     },
   })
 }

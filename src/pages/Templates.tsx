@@ -85,7 +85,7 @@ function TemplateRow({
     setStarting(true)
     try {
       const w = await createWorkout.mutateAsync({ name: template.name })
-      navigate(`/workout/${w.id}/active?templateId=${template.id}`, { replace: true })
+      navigate(`/workout/${w.id}/active?templateId=${template.id}`)
     } catch (err) {
       setStarting(false)
       toast.error(err instanceof Error ? err.message : 'Failed to start')

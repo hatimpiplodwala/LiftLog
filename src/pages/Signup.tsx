@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { AppLogo } from '@/components/ui/AppLogo'
 import { Input } from '@/components/ui/Input'
+import { isCommonPassword } from '@/lib/commonPasswords'
 
 export function Signup() {
   const navigate = useNavigate()
@@ -15,8 +16,12 @@ export function Signup() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters')
+    if (password.length < 8) {
+      toast.error('Password must be at least 8 characters')
+      return
+    }
+    if (isCommonPassword(password)) {
+      toast.error('That password is too common — pick something harder to guess')
       return
     }
     setLoading(true)
@@ -83,7 +88,7 @@ export function Signup() {
               autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              hint="At least 6 characters"
+              hint="At least 8 characters — avoid common passwords"
               required
             />
             <Button type="submit" fullWidth loading={loading}>

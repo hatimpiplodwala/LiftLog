@@ -9,44 +9,41 @@ import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
 import { supabase } from '@/lib/supabase'
 import { formatDuration, workoutDurationSecs } from '@/lib/utils'
-import type { Workout, WorkoutSet, Exercise } from '@/types/database.types'
+import type { WorkoutSet, Exercise } from '@/types/database.types'
+
+// Shape returned by the get_shared_workout RPC — user_id, notes, share_token intentionally excluded.
+interface SharedWorkout {
+  id: string
+  name: string
+  started_at: string
+  finished_at: string | null
+}
+type SharedSet = Omit<WorkoutSet, 'workout_id'>
 
 function useSharedWorkout(token: string | undefined) {
   return useQuery({
     enabled: !!token,
     queryKey: ['shared-workout', token],
     queryFn: async () => {
-      const { data: workout, error: e1 } = await supabase
-        .from('workouts')
-        .select('*')
-        .eq('share_token', token!)
-        .maybeSingle()
+      const { data: payload, error: e1 } = await supabase.rpc('get_shared_workout', {
+        token,
+      })
       if (e1) throw e1
-      if (!workout) return null
+      if (!payload) return null
+      const { workout, sets } = payload as { workout: SharedWorkout; sets: SharedSet[] }
 
-      const { data: sets, error: e2 } = await supabase
-        .from('workout_sets')
-        .select('*')
-        .eq('workout_id', workout.id)
-        .order('completed_at')
-      if (e2) throw e2
-
-      const exerciseIds = Array.from(new Set((sets ?? []).map((s) => s.exercise_id)))
+      const exerciseIds = Array.from(new Set(sets.map((s) => s.exercise_id)))
       let exercises: Exercise[] = []
       if (exerciseIds.length > 0) {
-        const { data: ex, error: e3 } = await supabase
+        const { data: ex, error: e2 } = await supabase
           .from('exercises')
-          .select('*')
+          .select('id, name, category, type')
           .in('id', exerciseIds)
-        if (e3) throw e3
+        if (e2) throw e2
         exercises = (ex ?? []) as Exercise[]
       }
 
-      return {
-        workout: workout as Workout,
-        sets: (sets ?? []) as WorkoutSet[],
-        exercises,
-      }
+      return { workout, sets, exercises }
     },
   })
 }
@@ -60,7 +57,7 @@ export function WorkoutShare() {
     const exMap = new Map(data.exercises.map((e) => [e.id, e]))
     const order: string[] = []
     const seen = new Set<string>()
-    const setsByEx = new Map<string, WorkoutSet[]>()
+    const setsByEx = new Map<string, SharedSet[]>()
     for (const s of data.sets) {
       if (!seen.has(s.exercise_id)) {
         seen.add(s.exercise_id)
@@ -117,8 +114,8 @@ function SharedWorkoutView({
   data,
   grouped,
 }: {
-  data: { workout: Workout; sets: WorkoutSet[]; exercises: Exercise[] }
-  grouped: { exercise: Exercise | undefined; sets: WorkoutSet[] }[]
+  data: { workout: SharedWorkout; sets: SharedSet[]; exercises: Exercise[] }
+  grouped: { exercise: Exercise | undefined; sets: SharedSet[] }[]
 }) {
   const totalVolumeKg = data.sets.reduce(
     (sum, s) => sum + (s.reps ?? 0) * (s.weight_kg ?? 0),
@@ -189,7 +186,7 @@ function SharedWorkoutView({
   )
 }
 
-function formatSet(s: WorkoutSet): string {
+function formatSet(s: SharedSet): string {
   if (s.duration_secs != null) return formatDuration(s.duration_secs)
   if (s.weight_kg != null && s.reps != null) return `${s.weight_kg} kg × ${s.reps}`
   if (s.reps != null) return `${s.reps} reps`
