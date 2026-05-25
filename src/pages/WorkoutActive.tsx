@@ -10,7 +10,7 @@ import { ArrowLeftIcon, ChevronDownIcon, ChevronUpIcon, PlusIcon, TrashIcon } fr
 import { ExercisePicker } from '@/components/workout/ExercisePicker'
 import { SetRow } from '@/components/workout/SetRow'
 import { WorkoutNotes } from '@/components/workout/WorkoutNotes'
-import { RestTimer, getStoredRestDuration } from '@/components/workout/RestTimer'
+import { RestTimer } from '@/components/workout/RestTimer'
 import {
   useWorkout,
   useWorkoutSets,
@@ -56,12 +56,7 @@ export function WorkoutActive() {
   const [seededFromTemplate, setSeededFromTemplate] = useState(false)
   const [seededFromRepeat, setSeededFromRepeat] = useState(false)
   const [finishing, setFinishing] = useState(false)
-  const [restDuration, setRestDuration] = useState<number>(() => getStoredRestDuration())
-  const [restEndsAt, setRestEndsAt] = useState<number | null>(null)
-
-  function startRest() {
-    setRestEndsAt(Date.now() + restDuration * 1000)
-  }
+  const [restStartedAt, setRestStartedAt] = useState<number | null>(null)
 
   useEffect(() => {
     if (templateExercises && !seededFromTemplate) {
@@ -261,7 +256,7 @@ export function WorkoutActive() {
               onMoveUp={() => moveExercise(eid, -1)}
               onMoveDown={() => moveExercise(eid, 1)}
               onRemoveEmpty={() => removeExerciseFromPlan(eid)}
-              onSetLogged={startRest}
+              onSetLogged={() => setRestStartedAt(Date.now())}
             />
           )
         })}
@@ -283,13 +278,8 @@ export function WorkoutActive() {
       />
 
       <RestTimer
-        endsAt={restEndsAt}
-        duration={restDuration}
-        onDurationChange={setRestDuration}
-        onDismiss={() => setRestEndsAt(null)}
-        onExtend={(extra) =>
-          setRestEndsAt((cur) => (cur != null ? cur + extra * 1000 : Date.now() + extra * 1000))
-        }
+        startedAt={restStartedAt}
+        onDismiss={() => setRestStartedAt(null)}
       />
     </div>
   )
