@@ -16,7 +16,7 @@ export function RestTimer({ startedAt, onDismiss }: Props) {
 
   if (startedAt == null) return null
 
-  const elapsed = Math.floor((now - startedAt) / 1000)
+  const elapsed = Math.max(0, Math.floor((now - startedAt) / 1000))
   const mm = Math.floor(elapsed / 60)
   const ss = elapsed % 60
 
