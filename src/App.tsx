@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 import { AppShell } from '@/components/layout/AppShell'
+import { ScrollToTop } from '@/components/layout/ScrollToTop'
 import { Spinner } from '@/components/ui/Spinner'
 import { Dashboard } from '@/pages/Dashboard'
 
@@ -39,7 +40,7 @@ function RootRedirect() {
   const { user, loading } = useAuth()
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-dvh items-center justify-center">
         <Spinner />
       </div>
     )
@@ -58,6 +59,7 @@ function Protected({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <Suspense fallback={<PageFallback />}>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<RootRedirect />} />
         <Route path="/login" element={<Login />} />

@@ -55,7 +55,7 @@
       radial-gradient(800px circle at 12% 0%, hsl(var(--primary) / 0.08), transparent 55%),
       radial-gradient(700px circle at 90% 100%, hsl(var(--primary) / 0.06), transparent 55%);
     background-attachment: fixed;
-    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   input,
@@ -126,5 +126,17 @@
     background-size: 40px 40px;
     -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
     mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  }
+}
+
+/* Respect users who prefer reduced motion: neutralize animations/transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

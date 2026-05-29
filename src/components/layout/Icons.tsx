@@ -157,3 +157,14 @@ export function SearchIcon({ className, size }: IconProps) {
   )
 }
 
+export function ChartIcon({ className, size }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M3 3v18h18" />
+      <path d="M18 17V9" />
+      <path d="M13 17V5" />
+      <path d="M8 17v-3" />
+    </svg>
+  )
+}
+

@@ -1,11 +1,12 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import { HomeIcon, DumbbellIcon, HistoryIcon, UserIcon } from './Icons'
+import { HomeIcon, DumbbellIcon, HistoryIcon, ChartIcon, UserIcon } from './Icons'
 
 const tabs = [
   { to: '/dashboard', label: 'Home', Icon: HomeIcon },
   { to: '/workout/new', label: 'Workout', Icon: DumbbellIcon },
   { to: '/history', label: 'History', Icon: HistoryIcon },
+  { to: '/progress', label: 'Progress', Icon: ChartIcon },
   { to: '/profile', label: 'Profile', Icon: UserIcon },
 ]
 

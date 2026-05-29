@@ -21,7 +21,7 @@ export function RestTimer({ startedAt, onDismiss }: Props) {
   const ss = elapsed % 60
 
   return (
-    <div className="glass-strong fixed bottom-4 left-4 right-4 z-30 mx-auto max-w-md rounded-lg p-3 shadow-xl">
+    <div className="glass-strong fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 z-30 mx-auto max-w-md rounded-lg p-3 shadow-xl">
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">

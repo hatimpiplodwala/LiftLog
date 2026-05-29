@@ -6,7 +6,14 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
-import { ChevronRightIcon, PlusIcon, RepeatIcon } from '@/components/layout/Icons'
+import { Stat } from '@/components/ui/Stat'
+import {
+  ChevronRightIcon,
+  PlusIcon,
+  RepeatIcon,
+  DumbbellIcon,
+  ListIcon,
+} from '@/components/layout/Icons'
 import { HeatmapCalendar } from '@/components/ui/HeatmapCalendar'
 import { useProfile } from '@/hooks/useProfile'
 import { useWorkouts, useCreateWorkout, useFinishedAts } from '@/hooks/useWorkouts'
@@ -14,7 +21,7 @@ import { useExercises } from '@/hooks/useExercises'
 import { supabase } from '@/lib/supabase'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
-import { cn, formatWeight, formatDuration, workoutDurationSecs } from '@/lib/utils'
+import { formatWeight, formatDuration, workoutDurationSecs } from '@/lib/utils'
 
 function useWeeklySetsTotal() {
   const { user } = useAuth()
@@ -126,6 +133,22 @@ export function Dashboard() {
           </Button>
         )}
 
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { to: '/exercises', label: 'Exercises', Icon: DumbbellIcon },
+            { to: '/templates', label: 'Templates', Icon: ListIcon },
+          ].map(({ to, label, Icon }) => (
+            <Link key={to} to={to}>
+              <Card className="flex items-center gap-2.5 py-3 transition-colors hover:border-primary/40">
+                <span className="rounded-md bg-secondary p-2 text-primary">
+                  <Icon size={18} />
+                </span>
+                <span className="text-sm font-semibold text-foreground">{label}</span>
+              </Card>
+            </Link>
+          ))}
+        </div>
+
         <section>
           <h2 className="mb-3 px-1 font-display text-sm font-bold uppercase tracking-wider text-muted-foreground">
             Consistency
@@ -165,37 +188,6 @@ export function Dashboard() {
         </section>
       </div>
     </div>
-  )
-}
-
-function Stat({
-  label,
-  value,
-  unit,
-  highlight,
-}: {
-  label: string
-  value: string
-  unit: string
-  highlight?: boolean
-}) {
-  return (
-    <Card className="px-3 py-3">
-      <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-        {label}
-      </div>
-      <div className="mt-1 flex items-baseline gap-1">
-        <span
-          className={cn(
-            'font-display text-2xl font-extrabold tabular-nums',
-            highlight ? 'text-primary' : 'text-foreground',
-          )}
-        >
-          {value}
-        </span>
-        <span className="text-xs text-muted-foreground">{unit}</span>
-      </div>
-    </Card>
   )
 }
 
