@@ -17,7 +17,7 @@ const features = [
   },
   {
     title: 'Rest timer',
-    body: 'Auto-starts after each set with audio and vibration cues.',
+    body: 'A clean count-up timer between sets — glanceable, one tap to dismiss.',
   },
   {
     title: 'Templates & notes',
@@ -31,7 +31,7 @@ const features = [
 
 export function Landing() {
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-dvh overflow-hidden">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-grid-fade opacity-50" />
 
       <header className="relative z-10 mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
@@ -50,23 +50,32 @@ export function Landing() {
       </header>
 
       <main className="relative z-10 mx-auto max-w-5xl px-5 pb-24 pt-12 text-center sm:px-8 sm:pt-20">
-        <span className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/60 px-4 py-1.5 text-xs font-medium text-muted-foreground">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+        <span className="inline-flex animate-fade-up items-center gap-2 rounded-full border border-border bg-secondary/60 px-4 py-1.5 text-xs font-medium text-muted-foreground">
+          <span className="h-1.5 w-1.5 animate-pulse-glow rounded-full bg-primary" />
           Free · Mobile-first · Built for lifters
         </span>
 
-        <h1 className="mt-6 font-display text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-7xl">
+        <h1
+          className="mt-6 animate-fade-up font-display text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-7xl"
+          style={{ animationDelay: '60ms' }}
+        >
           Lift heavier.
           <br />
           <span className="text-primary">Track smarter.</span>
         </h1>
 
-        <p className="mx-auto mt-6 max-w-xl text-base text-muted-foreground sm:text-lg">
+        <p
+          className="mx-auto mt-6 max-w-xl animate-fade-up text-base text-muted-foreground sm:text-lg"
+          style={{ animationDelay: '120ms' }}
+        >
           Log every set, track every PR, and watch your progress over time. A focused
           workout tracker that stays out of your way.
         </p>
 
-        <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <div
+          className="mt-9 flex animate-fade-up flex-col items-center justify-center gap-3 sm:flex-row"
+          style={{ animationDelay: '180ms' }}
+        >
           <Link to="/signup" className="w-full sm:w-auto">
             <Button size="lg" fullWidth>
               Start lifting — it's free
@@ -79,7 +88,7 @@ export function Landing() {
           </Link>
         </div>
 
-        <div className="mt-20 mx-auto max-w-2xl">
+        <div className="mt-20 mx-auto max-w-2xl animate-fade-up" style={{ animationDelay: '260ms' }}>
           <div className="glass-strong relative rounded-xl p-4 sm:p-6">
             <div className="rounded-lg border border-border bg-background/60 p-4 sm:p-6">
               <div className="flex items-center justify-between border-b border-border pb-3">
@@ -120,10 +129,11 @@ export function Landing() {
         </div>
 
         <div className="mt-20 grid gap-4 text-left sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((f) => (
+          {features.map((f, i) => (
             <div
               key={f.title}
-              className="glass rounded-lg p-5 transition-colors hover:border-primary/40"
+              className="glass animate-fade-up rounded-lg p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40"
+              style={{ animationDelay: `${320 + i * 60}ms` }}
             >
               <h3 className="font-display text-base font-bold text-foreground">{f.title}</h3>
               <p className="mt-1.5 text-sm text-muted-foreground">{f.body}</p>
@@ -131,7 +141,7 @@ export function Landing() {
           ))}
         </div>
 
-        <div className="mt-20 rounded-xl glass-strong p-8 sm:p-12">
+        <div className="mt-20 animate-fade-up rounded-xl glass-strong p-8 sm:p-12">
           <h2 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
             Your next PR is <span className="text-primary">one tap away.</span>
           </h2>

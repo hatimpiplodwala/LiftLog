@@ -25,12 +25,16 @@ import {
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
+import { Stat } from '@/components/ui/Stat'
+import { Input } from '@/components/ui/Input'
+import { SegmentedControl } from '@/components/ui/SegmentedControl'
+import { SearchIcon } from '@/components/layout/Icons'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfile } from '@/hooks/useProfile'
 import { useExercises } from '@/hooks/useExercises'
 import { useBodyWeights } from '@/hooks/useBodyWeight'
-import { cn, fromKg } from '@/lib/utils'
+import { fromKg } from '@/lib/utils'
 import type { Category, Exercise, Units } from '@/types/database.types'
 
 type Bucket = 'weekly' | 'monthly'
@@ -309,49 +313,27 @@ export function Progress() {
       <PageHeader title="Progress" subtitle="Track your gains over time" />
 
       <div className="space-y-4 px-4 pb-10 sm:px-6">
-        <div className="flex gap-1 rounded-md bg-secondary p-1">
-          {(['volume', 'exercise', 'muscle', 'bodyweight'] as Mode[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMode(m)}
-              className={cn(
-                'flex-1 rounded-sm py-1.5 text-xs font-medium capitalize transition-colors sm:text-sm',
-                mode === m
-                  ? 'bg-card text-foreground'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {m === 'volume'
-                ? 'Total'
-                : m === 'exercise'
-                  ? 'Exercise'
-                  : m === 'muscle'
-                    ? 'Muscle'
-                    : 'Body'}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl<Mode>
+          value={mode}
+          onChange={setMode}
+          options={[
+            { value: 'volume', label: 'Total' },
+            { value: 'exercise', label: 'Exercise' },
+            { value: 'muscle', label: 'Muscle' },
+            { value: 'bodyweight', label: 'Body' },
+          ]}
+        />
 
         {mode === 'volume' ? (
           <>
-            <div className="flex gap-1 rounded-md bg-secondary p-1">
-              {(['weekly', 'monthly'] as Bucket[]).map((b) => (
-                <button
-                  key={b}
-                  type="button"
-                  onClick={() => setBucket(b)}
-                  className={cn(
-                    'flex-1 rounded-sm py-1.5 text-sm font-medium capitalize transition-colors',
-                    bucket === b
-                      ? 'bg-card text-foreground'
-                      : 'text-muted-foreground hover:text-foreground',
-                  )}
-                >
-                  {b}
-                </button>
-              ))}
-            </div>
+            <SegmentedControl<Bucket>
+              value={bucket}
+              onChange={setBucket}
+              options={[
+                { value: 'weekly', label: 'weekly' },
+                { value: 'monthly', label: 'monthly' },
+              ]}
+            />
 
             <div className="grid grid-cols-2 gap-2">
               <Stat
@@ -519,13 +501,19 @@ export function Progress() {
               </>
             ) : (
               <div className="space-y-3">
-                <input
-                  type="search"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search exercises…"
-                  className="h-10 w-full rounded-md border border-input bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
+                <div className="relative">
+                  <SearchIcon
+                    size={16}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  />
+                  <Input
+                    type="search"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search exercises"
+                    className="pl-9"
+                  />
+                </div>
                 <div className="space-y-1">
                   {filteredExercises.length === 0 ? (
                     <p className="py-6 text-center text-sm text-muted-foreground">
@@ -727,17 +715,5 @@ export function Progress() {
         )}
       </div>
     </div>
-  )
-}
-
-function Stat({ label, value, unit }: { label: string; value: string; unit: string }) {
-  return (
-    <Card className="px-3 py-3">
-      <div className="text-[11px] font-medium uppercase text-muted-foreground">{label}</div>
-      <div className="mt-1 flex items-baseline gap-1">
-        <span className="text-xl font-extrabold tabular-nums text-foreground">{value}</span>
-        {unit && <span className="text-xs text-muted-foreground">{unit}</span>}
-      </div>
-    </Card>
   )
 }

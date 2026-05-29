@@ -70,6 +70,7 @@ export default {
         'accordion-up': 'accordion-up 200ms ease-out',
         'slide-up': 'slideUp 200ms ease-out',
         'fade-in': 'fadeIn 150ms ease-out',
+        'fade-up': 'fadeUp 500ms cubic-bezier(0.16, 1, 0.3, 1) both',
         'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
       },
       keyframes: {
@@ -88,6 +89,10 @@ export default {
         fadeIn: {
           from: { opacity: '0' },
           to: { opacity: '1' },
+        },
+        fadeUp: {
+          from: { opacity: '0', transform: 'translateY(12px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
         },
         pulseGlow: {
           '0%, 100%': { opacity: '0.9', filter: 'brightness(1)' },
