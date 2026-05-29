@@ -7,13 +7,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { Stat } from '@/components/ui/Stat'
-import {
-  ChevronRightIcon,
-  PlusIcon,
-  RepeatIcon,
-  DumbbellIcon,
-  ListIcon,
-} from '@/components/layout/Icons'
+import { ChevronRightIcon, PlusIcon, RepeatIcon } from '@/components/layout/Icons'
 import { HeatmapCalendar } from '@/components/ui/HeatmapCalendar'
 import { useProfile } from '@/hooks/useProfile'
 import { useWorkouts, useCreateWorkout, useFinishedAts } from '@/hooks/useWorkouts'
@@ -132,22 +126,6 @@ export function Dashboard() {
             <RepeatIcon size={16} /> Repeat last · {lastWorkout.name}
           </Button>
         )}
-
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            { to: '/exercises', label: 'Exercises', Icon: DumbbellIcon },
-            { to: '/templates', label: 'Templates', Icon: ListIcon },
-          ].map(({ to, label, Icon }) => (
-            <Link key={to} to={to}>
-              <Card className="flex items-center gap-2.5 py-3 transition-colors hover:border-primary/40">
-                <span className="rounded-md bg-secondary p-2 text-primary">
-                  <Icon size={18} />
-                </span>
-                <span className="text-sm font-semibold text-foreground">{label}</span>
-              </Card>
-            </Link>
-          ))}
-        </div>
 
         <section>
           <h2 className="mb-3 px-1 font-display text-sm font-bold uppercase tracking-wider text-muted-foreground">
