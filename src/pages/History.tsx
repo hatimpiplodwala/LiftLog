@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { format, differenceInCalendarDays } from 'date-fns'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
-import { Spinner } from '@/components/ui/Spinner'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { ChevronRightIcon } from '@/components/layout/Icons'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
@@ -65,9 +65,14 @@ export function History() {
 
       <div className="space-y-2 px-4 pb-10 sm:px-6">
         {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Spinner />
-          </div>
+          Array.from({ length: 5 }).map((_, i) => (
+            <Card key={i} className="flex items-center gap-3">
+              <div className="min-w-0 flex-1 space-y-2">
+                <Skeleton className="h-4 w-2/5" />
+                <Skeleton className="h-3 w-3/5" />
+              </div>
+            </Card>
+          ))
         ) : !workouts || workouts.length === 0 ? (
           <Card className="text-center">
             <p className="text-sm text-muted-foreground">No workouts logged yet.</p>

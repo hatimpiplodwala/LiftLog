@@ -5,7 +5,7 @@ import { format } from 'date-fns'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Spinner } from '@/components/ui/Spinner'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { BottomSheet } from '@/components/ui/BottomSheet'
@@ -85,8 +85,19 @@ export function WorkoutDetail() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-20">
-        <Spinner />
+      <div className="space-y-4 px-4 pb-10 pt-4 sm:px-6">
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-3 w-1/3" />
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <Skeleton className="h-16" />
+          <Skeleton className="h-16" />
+          <Skeleton className="h-16" />
+        </div>
+        {[0, 1].map((i) => (
+          <Skeleton key={i} className="h-32 w-full" />
+        ))}
       </div>
     )
   }
@@ -350,6 +361,17 @@ function ExerciseSection({
   const deleteSet = useDeleteSet()
   const { data: pr } = useExercisePR(exercise.id)
   const nextSetNumber = sets.length + 1
+  const [flashId, setFlashId] = useState<string | null>(null)
+
+  // Editable default for the next set: the last set already logged here.
+  const prefill =
+    sets.length > 0
+      ? {
+          reps: sets[sets.length - 1].reps,
+          weight_kg: sets[sets.length - 1].weight_kg,
+          duration_secs: sets[sets.length - 1].duration_secs,
+        }
+      : undefined
 
   return (
     <section className="glass space-y-2 rounded-lg p-3 sm:p-4">
@@ -381,6 +403,7 @@ function ExerciseSection({
             units={units}
             existing={s}
             isPR={isSetPR(s, pr, exercise.type)}
+            flash={s.id === flashId}
             onSave={async (v) => {
               try {
                 await updateSet.mutateAsync({
@@ -412,15 +435,21 @@ function ExerciseSection({
           index={nextSetNumber}
           exerciseType={exercise.type}
           units={units}
+          prefill={prefill}
           busy={insertSet.isPending}
           onSave={async (v) => {
             try {
-              await insertSet.mutateAsync({
+              const created = await insertSet.mutateAsync({
                 workout_id: workoutId,
                 exercise_id: exercise.id,
                 set_number: nextSetNumber,
                 ...v,
               })
+              setFlashId(created.id)
+              window.setTimeout(
+                () => setFlashId((cur) => (cur === created.id ? null : cur)),
+                900,
+              )
             } catch (err) {
               toast.error(err instanceof Error ? err.message : 'Failed to add set')
             }
