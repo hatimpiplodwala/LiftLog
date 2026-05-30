@@ -72,6 +72,8 @@ export default {
         'fade-in': 'fadeIn 150ms ease-out',
         'fade-up': 'fadeUp 500ms cubic-bezier(0.16, 1, 0.3, 1) both',
         'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
+        pop: 'pop 260ms cubic-bezier(0.34, 1.56, 0.64, 1) both',
+        'log-flash': 'logFlash 550ms ease-out',
       },
       keyframes: {
         'accordion-down': {
@@ -97,6 +99,14 @@ export default {
         pulseGlow: {
           '0%, 100%': { opacity: '0.9', filter: 'brightness(1)' },
           '50%': { opacity: '1', filter: 'brightness(1.15)' },
+        },
+        pop: {
+          from: { opacity: '0', transform: 'scale(0.6)' },
+          to: { opacity: '1', transform: 'scale(1)' },
+        },
+        logFlash: {
+          from: { boxShadow: 'inset 0 0 0 9999px hsl(var(--primary) / 0.18)' },
+          to: { boxShadow: 'inset 0 0 0 9999px hsl(var(--primary) / 0)' },
         },
       },
     },

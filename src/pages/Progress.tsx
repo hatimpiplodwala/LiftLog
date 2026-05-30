@@ -24,7 +24,7 @@ import {
 } from 'date-fns'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
-import { Spinner } from '@/components/ui/Spinner'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { Stat } from '@/components/ui/Stat'
 import { Input } from '@/components/ui/Input'
 import { SegmentedControl } from '@/components/ui/SegmentedControl'
@@ -350,9 +350,7 @@ export function Progress() {
 
             <Card className="px-2 py-4">
               {volumeLoading ? (
-                <div className="flex h-56 items-center justify-center">
-                  <Spinner />
-                </div>
+                <Skeleton className="h-56 w-full" />
               ) : allZero ? (
                 <div className="flex h-56 flex-col items-center justify-center gap-1 text-center">
                   <p className="text-sm font-medium text-foreground">No volume yet</p>
@@ -436,9 +434,7 @@ export function Progress() {
 
                 <Card className="px-2 py-4">
                   {exLoading ? (
-                    <div className="flex h-56 items-center justify-center">
-                      <Spinner />
-                    </div>
+                    <Skeleton className="h-56 w-full" />
                   ) : exPoints.length === 0 ? (
                     <div className="flex h-56 flex-col items-center justify-center gap-1 text-center">
                       <p className="text-sm font-medium text-foreground">No data yet</p>
@@ -555,9 +551,7 @@ export function Progress() {
 
             <Card className="px-2 py-4">
               {muscleLoading ? (
-                <div className="flex h-56 items-center justify-center">
-                  <Spinner />
-                </div>
+                <Skeleton className="h-56 w-full" />
               ) : muscleAllZero ? (
                 <div className="flex h-56 flex-col items-center justify-center gap-1 text-center">
                   <p className="text-sm font-medium text-foreground">No volume yet</p>
@@ -652,9 +646,7 @@ export function Progress() {
 
             <Card className="px-2 py-4">
               {bwLoading ? (
-                <div className="flex h-56 items-center justify-center">
-                  <Spinner />
-                </div>
+                <Skeleton className="h-56 w-full" />
               ) : bodyWeightPoints.length === 0 ? (
                 <div className="flex h-56 flex-col items-center justify-center gap-1 text-center">
                   <p className="text-sm font-medium text-foreground">No body weight logged</p>

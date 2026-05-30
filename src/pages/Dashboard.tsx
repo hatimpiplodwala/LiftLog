@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Spinner } from '@/components/ui/Spinner'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { Stat } from '@/components/ui/Stat'
 import { ChevronRightIcon, PlusIcon, RepeatIcon } from '@/components/layout/Icons'
 import { HeatmapCalendar } from '@/components/ui/HeatmapCalendar'
@@ -147,8 +147,15 @@ export function Dashboard() {
           </div>
 
           {isLoading ? (
-            <div className="flex justify-center py-8">
-              <Spinner />
+            <div className="space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i} className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-3 w-2/5" />
+                  </div>
+                </Card>
+              ))}
             </div>
           ) : recent.length === 0 ? (
             <Card className="text-center">

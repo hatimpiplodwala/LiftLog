@@ -3,22 +3,34 @@ import { CheckIcon, TrashIcon } from '@/components/layout/Icons'
 import { cn, fromKg, toKg } from '@/lib/utils'
 import type { WorkoutSet, ExerciseType, Units } from '@/types/database.types'
 
+interface SetValues {
+  reps: number | null
+  weight_kg: number | null
+  duration_secs: number | null
+}
+
 interface Props {
   index: number
   exerciseType: ExerciseType
   units: Units
   existing?: WorkoutSet
-  onSave: (values: { reps: number | null; weight_kg: number | null; duration_secs: number | null }) => void | Promise<void>
+  // For the new-set row: pre-fill inputs with editable defaults (last set this
+  // session, else previous session). Ignored when `existing` is set.
+  prefill?: SetValues
+  onSave: (values: SetValues) => void | Promise<void>
   onDelete?: () => void | Promise<void>
   busy?: boolean
   isPR?: boolean
+  // One-shot highlight after this set was just logged.
+  flash?: boolean
 }
 
-export function SetRow({ index, exerciseType, units, existing, onSave, onDelete, busy, isPR }: Props) {
+export function SetRow({ index, exerciseType, units, existing, prefill, onSave, onDelete, busy, isPR, flash }: Props) {
+  const source = existing ?? prefill ?? null
   const initialWeight =
-    existing?.weight_kg != null ? String(fromKg(existing.weight_kg, units)) : ''
-  const initialReps = existing?.reps != null ? String(existing.reps) : ''
-  const initialDuration = existing?.duration_secs != null ? String(existing.duration_secs) : ''
+    source?.weight_kg != null ? String(fromKg(source.weight_kg, units)) : ''
+  const initialReps = source?.reps != null ? String(source.reps) : ''
+  const initialDuration = source?.duration_secs != null ? String(source.duration_secs) : ''
 
   const [weight, setWeight] = useState(initialWeight)
   const [reps, setReps] = useState(initialReps)
@@ -55,8 +67,9 @@ export function SetRow({ index, exerciseType, units, existing, onSave, onDelete,
   return (
     <div
       className={cn(
-        'flex items-center gap-2 rounded-md px-2 py-2',
-        existing ? 'bg-secondary/60' : 'bg-transparent',
+        'flex items-center gap-2 rounded-md border-l-2 px-2 py-2',
+        existing ? 'border-primary/40 bg-secondary/60' : 'border-transparent bg-transparent',
+        flash && 'animate-log-flash',
       )}
     >
       <span className="w-6 shrink-0 text-center text-xs font-semibold tabular-nums text-muted-foreground">
@@ -95,7 +108,7 @@ export function SetRow({ index, exerciseType, units, existing, onSave, onDelete,
         <span
           title="Personal record"
           aria-label="Personal record"
-          className="inline-flex h-6 shrink-0 items-center rounded-md border border-primary/50 bg-primary/15 px-1.5 text-[10px] font-bold uppercase tracking-wider text-primary"
+          className="inline-flex h-6 shrink-0 animate-pop items-center rounded-md border border-primary/50 bg-primary/15 px-1.5 text-[10px] font-bold uppercase tracking-wider text-primary"
         >
           PR
         </span>

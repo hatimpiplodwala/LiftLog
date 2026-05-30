@@ -342,6 +342,28 @@ function ExerciseBlock({
   const { data: lastSet } = useLastSetForExercise(exercise.id)
   const { data: pr } = useExercisePR(exercise.id)
   const { data: prevSession } = usePreviousSessionSets(exercise.id, workoutId)
+  const [flashId, setFlashId] = useState<string | null>(null)
+
+  // Editable defaults for the next set: last set this session, else the
+  // matching set from the previous session, else last-ever for this exercise.
+  const prefill = useMemo(() => {
+    if (sets.length > 0) {
+      const s = sets[sets.length - 1]
+      return { reps: s.reps, weight_kg: s.weight_kg, duration_secs: s.duration_secs }
+    }
+    if (prevSession && prevSession.length > 0) {
+      const s = prevSession[0]
+      return { reps: s.reps, weight_kg: s.weight_kg, duration_secs: s.duration_secs }
+    }
+    if (lastSet) {
+      return {
+        reps: lastSet.reps,
+        weight_kg: lastSet.weight_kg,
+        duration_secs: lastSet.duration_secs,
+      }
+    }
+    return undefined
+  }, [sets, prevSession, lastSet])
 
   const hint =
     prevSession && prevSession.length > 0
@@ -425,6 +447,7 @@ function ExerciseBlock({
             units={units}
             existing={s}
             isPR={isSetPR(s, pr, exercise.type)}
+            flash={s.id === flashId}
             onSave={async (v) => {
               try {
                 await updateSet.mutateAsync({
@@ -456,16 +479,22 @@ function ExerciseBlock({
           index={nextSetNumber}
           exerciseType={exercise.type}
           units={units}
+          prefill={prefill}
           busy={insertSet.isPending}
           onSave={async (v) => {
             try {
-              await insertSet.mutateAsync({
+              const created = await insertSet.mutateAsync({
                 workout_id: workoutId,
                 exercise_id: exercise.id,
                 set_number: nextSetNumber,
                 ...v,
               })
               onSetLogged()
+              setFlashId(created.id)
+              window.setTimeout(
+                () => setFlashId((cur) => (cur === created.id ? null : cur)),
+                900,
+              )
             } catch (err) {
               toast.error(err instanceof Error ? err.message : 'Failed to log set')
             }
