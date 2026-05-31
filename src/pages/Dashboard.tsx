@@ -15,6 +15,7 @@ import { supabase } from '@/lib/supabase'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatWeight, formatDuration, workoutDurationSecs } from '@/lib/utils'
+import { computeStreak } from '@/lib/streak'
 
 function useWeeklySetsTotal() {
   const { user } = useAuth()
@@ -33,23 +34,6 @@ function useWeeklySetsTotal() {
       return data as Array<{ reps: number | null; weight_kg: number | null }>
     },
   })
-}
-
-// Local-tz date keys so a workout at 23:30 counts today, not tomorrow. Must match HeatmapCalendar.
-function computeStreak(finishedAts: string[]): number {
-  if (finishedAts.length === 0) return 0
-  const dateSet = new Set(finishedAts.map((d) => format(new Date(d), 'yyyy-MM-dd')))
-  let streak = 0
-  let cursor = new Date()
-  if (!dateSet.has(format(cursor, 'yyyy-MM-dd'))) {
-    cursor = new Date(cursor.getTime() - 86400_000)
-    if (!dateSet.has(format(cursor, 'yyyy-MM-dd'))) return 0
-  }
-  while (dateSet.has(format(cursor, 'yyyy-MM-dd'))) {
-    streak++
-    cursor = new Date(cursor.getTime() - 86400_000)
-  }
-  return streak
 }
 
 export function Dashboard() {
