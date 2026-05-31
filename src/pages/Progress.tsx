@@ -80,12 +80,12 @@ function useVolumeSets() {
   })
 }
 
-function useMuscleSets() {
+function useMuscleSets(enabled: boolean) {
   const { user } = useAuth()
   const since = subWeeks(new Date(), 12)
   const sinceKey = format(since, 'yyyy-MM-dd')
   return useQuery({
-    enabled: !!user,
+    enabled: !!user && enabled,
     queryKey: ['muscle-sets', user?.id, sinceKey],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -243,8 +243,10 @@ export function Progress() {
   const [search, setSearch] = useState('')
 
   const { data: exSets, isLoading: exLoading } = useExerciseSets(selectedExercise?.id ?? null)
-  const { data: muscleSets, isLoading: muscleLoading } = useMuscleSets()
-  const { data: bodyWeights, isLoading: bwLoading } = useBodyWeights()
+  const { data: muscleSets, isLoading: muscleLoading } = useMuscleSets(mode === 'muscle')
+  const { data: bodyWeights, isLoading: bwLoading } = useBodyWeights({
+    enabled: mode === 'bodyweight',
+  })
 
   const bodyWeightPoints = useMemo(() => {
     if (!bodyWeights) return [] as { label: string; weight: number; ts: number }[]

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { format, startOfWeek, isAfter, differenceInCalendarDays } from 'date-fns'
 import toast from 'react-hot-toast'
@@ -11,7 +11,6 @@ import { ChevronRightIcon, PlusIcon, RepeatIcon } from '@/components/layout/Icon
 import { HeatmapCalendar } from '@/components/ui/HeatmapCalendar'
 import { useProfile } from '@/hooks/useProfile'
 import { useWorkouts, useCreateWorkout, useFinishedAts } from '@/hooks/useWorkouts'
-import { useExercises } from '@/hooks/useExercises'
 import { supabase } from '@/lib/supabase'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
@@ -60,7 +59,6 @@ export function Dashboard() {
   const { data: workouts, isLoading } = useWorkouts({ finishedOnly: true, limit: 12 })
   const { data: finishedAts } = useFinishedAts()
   const { data: weekSets } = useWeeklySetsTotal()
-  const { data: exercises } = useExercises()
   const createWorkout = useCreateWorkout()
   const [repeating, setRepeating] = useState(false)
 
@@ -78,18 +76,19 @@ export function Dashboard() {
     }
   }
 
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
-  const workoutsThisWeek = (workouts ?? []).filter(
-    (w) => w.finished_at && isAfter(new Date(w.finished_at), weekStart),
-  )
+  const workoutsThisWeek = useMemo(() => {
+    const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
+    return (workouts ?? []).filter(
+      (w) => w.finished_at && isAfter(new Date(w.finished_at), weekStart),
+    )
+  }, [workouts])
 
-  const weeklyVolumeKg = (weekSets ?? []).reduce(
-    (sum, s) => sum + (s.reps ?? 0) * (s.weight_kg ?? 0),
-    0,
+  const weeklyVolumeKg = useMemo(
+    () => (weekSets ?? []).reduce((sum, s) => sum + (s.reps ?? 0) * (s.weight_kg ?? 0), 0),
+    [weekSets],
   )
-  const streak = computeStreak(finishedAts ?? [])
-  const recent = (workouts ?? []).slice(0, 3)
-  const exMap = new Map((exercises ?? []).map((e) => [e.id, e.name]))
+  const streak = useMemo(() => computeStreak(finishedAts ?? []), [finishedAts])
+  const recent = useMemo(() => (workouts ?? []).slice(0, 3), [workouts])
 
   const greeting = profile?.username ? `Hey, ${profile.username}` : 'Hey, lifter'
 
@@ -166,7 +165,7 @@ export function Dashboard() {
           ) : (
             <div className="space-y-2">
               {recent.map((w) => (
-                <RecentWorkoutCard key={w.id} workout={w} exerciseNames={exMap} />
+                <RecentWorkoutCard key={w.id} workout={w} />
               ))}
             </div>
           )}
@@ -178,10 +177,8 @@ export function Dashboard() {
 
 function RecentWorkoutCard({
   workout,
-  exerciseNames: _exerciseNames,
 }: {
   workout: { id: string; name: string; started_at: string; finished_at: string | null }
-  exerciseNames: Map<string, string>
 }) {
   const date = new Date(workout.started_at)
   const today = new Date()

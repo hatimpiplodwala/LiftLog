@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { BodyWeightLog } from '@/types/database.types'
 
-export function useBodyWeights() {
+export function useBodyWeights(opts?: { enabled?: boolean }) {
   const { user } = useAuth()
   // Bound the window so the query is constant-time as users accumulate years
   // of entries. 12 months covers every consumer (Profile shows latest + recent
@@ -12,7 +12,7 @@ export function useBodyWeights() {
   const since = subMonths(new Date(), 12)
   const sinceKey = format(since, 'yyyy-MM-dd')
   return useQuery({
-    enabled: !!user,
+    enabled: !!user && (opts?.enabled ?? true),
     queryKey: ['body-weights', user?.id, sinceKey],
     queryFn: async () => {
       const { data, error } = await supabase
