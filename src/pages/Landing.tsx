@@ -2,31 +2,12 @@ import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { AppLogo } from '@/components/ui/AppLogo'
 
-const features = [
-  {
-    title: 'Fast set logging',
-    body: 'Freeform sets save the moment you tap. No menus, no friction.',
-  },
-  {
-    title: 'Personal records',
-    body: 'Every all-time max is marked automatically as you train.',
-  },
-  {
-    title: 'Progress charts',
-    body: 'Weekly volume and per-exercise trends, kept simple.',
-  },
-  {
-    title: 'Rest timer',
-    body: 'A clean count-up timer between sets — glanceable, one tap to dismiss.',
-  },
-  {
-    title: 'Templates & notes',
-    body: 'Reuse your favourite splits and jot how each session felt.',
-  },
-  {
-    title: 'Shareable workouts',
-    body: 'Publish any session to a public link in one click.',
-  },
+const highlights = ['Fast logging', 'Auto PRs', 'Progress charts']
+
+const mockupRows = [
+  { name: 'Bench Press', sets: '100kg × 5', pr: true },
+  { name: 'Overhead Press', sets: '60kg × 8' },
+  { name: 'Incline DB Press', sets: '32kg × 10' },
 ]
 
 export function Landing() {
@@ -49,47 +30,66 @@ export function Landing() {
         </Link>
       </header>
 
-      <main className="relative z-10 mx-auto max-w-5xl px-5 pb-24 pt-12 text-center sm:px-8 sm:pt-20">
-        <span className="inline-flex animate-fade-up items-center gap-2 rounded-full border border-border bg-secondary/60 px-4 py-1.5 text-xs font-medium text-muted-foreground">
-          <span className="h-1.5 w-1.5 animate-pulse-glow rounded-full bg-primary" />
-          Free · Mobile-first · Built for lifters
-        </span>
+      <main className="relative z-10 mx-auto grid max-w-6xl items-center gap-12 px-5 pb-16 pt-10 sm:px-8 lg:min-h-[calc(100dvh-4rem)] lg:grid-cols-2 lg:gap-10 lg:pb-24 lg:pt-4">
+        {/* Left — copy */}
+        <div className="max-w-xl">
+          <span className="inline-flex animate-fade-up items-center gap-2 rounded-full border border-border bg-secondary/60 px-4 py-1.5 text-xs font-medium text-muted-foreground">
+            <span className="h-1.5 w-1.5 animate-pulse-glow rounded-full bg-primary" />
+            Free · Mobile-first · Built for lifters
+          </span>
 
-        <h1
-          className="mt-6 animate-fade-up font-display text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-7xl"
-          style={{ animationDelay: '60ms' }}
-        >
-          Lift heavier.
-          <br />
-          <span className="text-primary">Track smarter.</span>
-        </h1>
+          <h1
+            className="mt-6 animate-fade-up font-display text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl"
+            style={{ animationDelay: '60ms' }}
+          >
+            Lift heavier.
+            <br />
+            <span className="text-primary">Track smarter.</span>
+          </h1>
 
-        <p
-          className="mx-auto mt-6 max-w-xl animate-fade-up text-base text-muted-foreground sm:text-lg"
-          style={{ animationDelay: '120ms' }}
-        >
-          Log every set, track every PR, and watch your progress over time. A focused
-          workout tracker that stays out of your way.
-        </p>
+          <p
+            className="mt-6 max-w-md animate-fade-up text-base text-muted-foreground sm:text-lg"
+            style={{ animationDelay: '120ms' }}
+          >
+            Log every set, track every PR, and watch your progress over time. A focused
+            workout tracker that stays out of your way.
+          </p>
 
-        <div
-          className="mt-9 flex animate-fade-up flex-col items-center justify-center gap-3 sm:flex-row"
-          style={{ animationDelay: '180ms' }}
-        >
-          <Link to="/signup" className="w-full sm:w-auto">
-            <Button size="lg" fullWidth>
-              Start lifting — it's free
-            </Button>
-          </Link>
-          <Link to="/login" className="w-full sm:w-auto">
-            <Button size="lg" variant="secondary" fullWidth>
-              I already have an account
-            </Button>
-          </Link>
+          <div
+            className="mt-8 flex animate-fade-up flex-col gap-3 sm:flex-row"
+            style={{ animationDelay: '180ms' }}
+          >
+            <Link to="/signup" className="w-full sm:w-auto">
+              <Button size="lg" fullWidth>
+                Start lifting — it's free
+              </Button>
+            </Link>
+            <Link to="/login" className="w-full sm:w-auto">
+              <Button size="lg" variant="secondary" fullWidth>
+                I already have an account
+              </Button>
+            </Link>
+          </div>
+
+          <ul
+            className="mt-8 flex animate-fade-up flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground"
+            style={{ animationDelay: '240ms' }}
+          >
+            {highlights.map((h) => (
+              <li key={h} className="flex items-center gap-2">
+                <span aria-hidden className="h-1 w-1 rounded-full bg-primary" />
+                {h}
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <div className="mt-20 mx-auto max-w-2xl animate-fade-up" style={{ animationDelay: '260ms' }}>
-          <div className="glass-strong relative rounded-xl p-4 sm:p-6">
+        {/* Right — workout mockup */}
+        <div
+          className="w-full animate-fade-up lg:justify-self-end"
+          style={{ animationDelay: '300ms' }}
+        >
+          <div className="glass-strong relative mx-auto w-full max-w-md rounded-xl p-4 sm:p-6">
             <div className="rounded-lg border border-border bg-background/60 p-4 sm:p-6">
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <div className="text-left">
@@ -103,11 +103,7 @@ export function Landing() {
                 </span>
               </div>
               <div className="mt-4 space-y-2 text-left text-sm">
-                {[
-                  { name: 'Bench Press', sets: '100kg × 5', pr: true },
-                  { name: 'Overhead Press', sets: '60kg × 8' },
-                  { name: 'Incline DB Press', sets: '32kg × 10' },
-                ].map((row) => (
+                {mockupRows.map((row) => (
                   <div
                     key={row.name}
                     className="flex items-center justify-between rounded-md border border-border bg-secondary/40 px-3 py-2"
@@ -125,35 +121,6 @@ export function Landing() {
                 ))}
               </div>
             </div>
-          </div>
-        </div>
-
-        <div className="mt-20 grid gap-4 text-left sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((f, i) => (
-            <div
-              key={f.title}
-              className="glass animate-fade-up rounded-lg p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40"
-              style={{ animationDelay: `${320 + i * 60}ms` }}
-            >
-              <h3 className="font-display text-base font-bold text-foreground">{f.title}</h3>
-              <p className="mt-1.5 text-sm text-muted-foreground">{f.body}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-20 animate-fade-up rounded-xl glass-strong p-8 sm:p-12">
-          <h2 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Your next PR is <span className="text-primary">one tap away.</span>
-          </h2>
-          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-            Free forever for the core app. No ads, no nonsense.
-          </p>
-          <div className="mt-6 flex justify-center">
-            <Link to="/signup" className="w-full sm:w-auto">
-              <Button size="lg" fullWidth>
-                Create your free account
-              </Button>
-            </Link>
           </div>
         </div>
       </main>
