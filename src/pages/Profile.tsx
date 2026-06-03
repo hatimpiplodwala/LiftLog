@@ -178,7 +178,7 @@ function BodyWeightSection({ units }: { units: Units }) {
           </div>
           {latest ? (
             <div className="mt-1 flex items-baseline gap-1">
-              <span className="text-xl font-extrabold tabular-nums text-foreground">
+              <span className="font-data text-xl font-semibold text-foreground">
                 {fromKg(latest.weight_kg, units)}
               </span>
               <span className="text-xs text-muted-foreground">{units}</span>
@@ -229,10 +229,10 @@ function BodyWeightSection({ units }: { units: Units }) {
                 key={l.id}
                 className="flex items-center justify-between gap-2 py-1.5 text-sm"
               >
-                <span className="tabular-nums text-foreground">
+                <span className="font-data text-foreground">
                   {fromKg(l.weight_kg, units)} {units}
                 </span>
-                <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="flex items-center gap-2 font-data text-xs text-muted-foreground">
                   {format(new Date(l.logged_at), 'MMM d, yyyy')}
                   <button
                     type="button"

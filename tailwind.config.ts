@@ -58,20 +58,12 @@ export default {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
-      boxShadow: {
-        'glow-emerald':
-          '0 0 24px -6px hsl(var(--primary) / 0.5), 0 0 48px -16px hsl(var(--primary) / 0.35)',
-        'glow-emerald-soft':
-          '0 0 18px -8px hsl(var(--primary) / 0.35)',
-        'inner-shine': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.06)',
-      },
       animation: {
         'accordion-down': 'accordion-down 200ms ease-out',
         'accordion-up': 'accordion-up 200ms ease-out',
         'slide-up': 'slideUp 200ms ease-out',
         'fade-in': 'fadeIn 150ms ease-out',
         'fade-up': 'fadeUp 500ms cubic-bezier(0.16, 1, 0.3, 1) both',
-        'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
         pop: 'pop 260ms cubic-bezier(0.34, 1.56, 0.64, 1) both',
         'log-flash': 'logFlash 550ms ease-out',
       },
@@ -95,10 +87,6 @@ export default {
         fadeUp: {
           from: { opacity: '0', transform: 'translateY(12px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
-        },
-        pulseGlow: {
-          '0%, 100%': { opacity: '0.9', filter: 'brightness(1)' },
-          '50%': { opacity: '1', filter: 'brightness(1.15)' },
         },
         pop: {
           from: { opacity: '0', transform: 'scale(0.6)' },

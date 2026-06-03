@@ -221,12 +221,12 @@ export function WorkoutActive() {
           </Button>
         </div>
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-4 px-4 pb-3 text-xs text-muted-foreground sm:px-6">
-          <span className="font-semibold tabular-nums text-primary">{totalSets} sets</span>
-          <span className="text-muted-foreground">·</span>
-          <span className="flex-1 tabular-nums">
+          <span className="font-data font-semibold text-primary">{totalSets} sets</span>
+          <span className="text-border">·</span>
+          <span className="font-data flex-1">
             {formatWeight(totalVolumeKg, units)} {units} volume
           </span>
-          <span className="text-muted-foreground">{format(new Date(workout.started_at), 'MMM d, h:mm a')}</span>
+          <span className="font-data text-muted-foreground">{format(new Date(workout.started_at), 'MMM d, h:mm a')}</span>
         </div>
       </header>
 
@@ -310,7 +310,7 @@ function LiveDuration({ startedAt }: { startedAt: string }) {
     const t = setInterval(() => setNow(Date.now()), isShortDuration ? 1000 : 30_000)
     return () => clearInterval(t)
   }, [isShortDuration])
-  return <div className="text-xs text-muted-foreground tabular-nums">{formatDuration(secs)}</div>
+  return <div className="font-data text-xs text-muted-foreground">{formatDuration(secs)}</div>
 }
 
 function ExerciseBlock({
@@ -427,7 +427,7 @@ function ExerciseBlock({
           <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Previous session
           </div>
-          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground tabular-nums">
+          <div className="font-data mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
             {prevSession.map((ps, i) => (
               <span key={i}>
                 <span>{i + 1}.</span>{' '}

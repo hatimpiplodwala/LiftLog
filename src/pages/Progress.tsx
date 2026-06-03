@@ -188,12 +188,12 @@ const CHART_AXIS = '#737373'
 const CHART_GRID = '#1f1f1f'
 const CHART_TOOLTIP_BG = '#0f0f0f'
 const CHART_TOOLTIP_BORDER = '#262626'
-const CHART_PRIMARY = '#10b981'
+const CHART_PRIMARY = '#26ab7a'
 
 const CATEGORIES: Category[] = ['chest', 'back', 'legs', 'shoulders', 'arms', 'core', 'cardio']
 
 const CATEGORY_COLORS: Record<Category, string> = {
-  chest: '#10b981',
+  chest: '#26ab7a',
   back: '#3b82f6',
   legs: '#a855f7',
   shoulders: '#f59e0b',
@@ -512,27 +512,27 @@ export function Progress() {
                     className="pl-9"
                   />
                 </div>
-                <div className="space-y-1">
-                  {filteredExercises.length === 0 ? (
-                    <p className="py-6 text-center text-sm text-muted-foreground">
-                      No exercises found.
-                    </p>
-                  ) : (
-                    filteredExercises.map((e) => (
+                {filteredExercises.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-muted-foreground">
+                    No exercises found.
+                  </p>
+                ) : (
+                  <div className="divide-y divide-border rounded-md border border-border bg-card">
+                    {filteredExercises.map((e) => (
                       <button
                         key={e.id}
                         type="button"
                         onClick={() => setSelectedExercise(e)}
-                        className="flex w-full items-center justify-between rounded-md bg-card px-4 py-3 text-left transition-colors hover:bg-secondary/60"
+                        className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-secondary/40"
                       >
                         <span className="text-sm font-semibold text-foreground">{e.name}</span>
-                        <span className="text-xs text-muted-foreground capitalize">
+                        <span className="text-xs capitalize text-muted-foreground">
                           {e.category}
                         </span>
                       </button>
-                    ))
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </>

@@ -148,25 +148,28 @@ function SharedWorkoutView({
           </Card>
         ) : (
           grouped.map(({ exercise, sets }, idx) => (
-            <Card key={exercise?.id ?? idx} className="space-y-2">
-              <div className="flex items-center justify-between gap-2">
+            <div
+              key={exercise?.id ?? idx}
+              className="overflow-hidden rounded-md border border-border bg-card"
+            >
+              <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
                 <h3 className="text-sm font-bold text-foreground">{exercise?.name ?? 'Unknown'}</h3>
                 {exercise && <Badge variant="muted">{exercise.category}</Badge>}
               </div>
-              <div className="space-y-1">
+              <ul className="divide-y divide-border">
                 {sets.map((s, i) => (
-                  <div
+                  <li
                     key={s.id}
-                    className="flex items-center justify-between rounded-md bg-secondary/60 px-3 py-2 text-sm"
+                    className="flex items-center justify-between px-4 py-2.5 text-sm"
                   >
-                    <span className="text-xs font-semibold text-muted-foreground tabular-nums">
+                    <span className="font-data text-xs font-semibold text-muted-foreground">
                       Set {i + 1}
                     </span>
-                    <span className="font-medium tabular-nums text-foreground">{formatSet(s)}</span>
-                  </div>
+                    <span className="font-data font-medium text-foreground">{formatSet(s)}</span>
+                  </li>
                 ))}
-              </div>
-            </Card>
+              </ul>
+            </div>
           ))
         )}
       </div>
@@ -197,7 +200,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <Card className="px-3 py-3 text-center">
       <div className="text-[11px] font-medium uppercase text-muted-foreground">{label}</div>
-      <div className="mt-1 text-base font-extrabold tabular-nums text-foreground">{value}</div>
+      <div className="font-data mt-1 text-base font-semibold text-foreground">{value}</div>
     </Card>
   )
 }

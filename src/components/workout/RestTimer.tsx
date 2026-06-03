@@ -27,7 +27,7 @@ export function RestTimer({ startedAt, onDismiss }: Props) {
           <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Resting
           </div>
-          <div className="font-display text-3xl font-extrabold tabular-nums text-foreground">
+          <div className="font-data text-3xl font-bold text-foreground">
             {mm}:{ss.toString().padStart(2, '0')}
           </div>
         </div>

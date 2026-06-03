@@ -13,9 +13,9 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          'bg-primary text-primary-foreground shadow-glow-emerald-soft hover:bg-primary/90 hover:shadow-glow-emerald active:scale-[0.97]',
+          'bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98]',
         secondary:
-          'glass text-foreground hover:bg-secondary/80 active:scale-[0.98]',
+          'border border-border bg-card text-foreground hover:bg-secondary active:scale-[0.98]',
         ghost: 'text-foreground hover:bg-secondary active:scale-[0.98]',
         danger:
           'border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 active:scale-[0.98]',

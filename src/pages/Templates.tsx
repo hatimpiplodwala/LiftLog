@@ -101,7 +101,7 @@ function TemplateRow({
       >
         <div className="min-w-0">
           <div className="truncate text-sm font-bold text-foreground">{template.name}</div>
-          <div className="mt-0.5 text-xs text-muted-foreground">
+          <div className="mt-0.5 font-data text-xs text-muted-foreground">
             Created {format(new Date(template.created_at), 'MMM d, yyyy')}
           </div>
         </div>
@@ -123,16 +123,16 @@ function TemplateRow({
           ) : items.length === 0 ? (
             <p className="text-sm text-muted-foreground">No exercises in this template.</p>
           ) : (
-            <div className="space-y-1">
+            <div className="divide-y divide-border rounded-md border border-border bg-card">
               {items.map((it, i) => {
                 const ex = exMap.get(it.exercise_id)
                 return (
                   <div
                     key={it.id}
-                    className="flex items-center justify-between rounded-md bg-card px-3 py-2 text-sm"
+                    className="flex items-center justify-between px-3 py-2.5 text-sm"
                   >
                     <span className="font-medium text-foreground">
-                      <span className="mr-2 text-muted-foreground tabular-nums">{i + 1}.</span>
+                      <span className="mr-2 font-data text-muted-foreground">{i + 1}.</span>
                       {ex?.name ?? 'Unknown exercise'}
                     </span>
                     {ex && <Badge variant="muted">{ex.category}</Badge>}

@@ -131,11 +131,11 @@ export function Exercises() {
             <p className="text-sm text-muted-foreground">No exercises match.</p>
           </Card>
         ) : (
-          <div className="space-y-1.5">
+          <div className="divide-y divide-border rounded-md border border-border bg-card">
             {filtered.map((e) => {
               const isCustom = e.created_by === user?.id
               return (
-                <Card key={e.id} className="flex items-center justify-between gap-2 py-3">
+                <div key={e.id} className="flex items-center justify-between gap-2 px-4 py-3">
                   <div className="min-w-0">
                     <div className="truncate text-sm font-semibold text-foreground">{e.name}</div>
                     <div className="mt-0.5 flex gap-1.5">
@@ -155,7 +155,7 @@ export function Exercises() {
                       <TrashIcon size={16} />
                     </button>
                   )}
-                </Card>
+                </div>
               )
             })}
           </div>

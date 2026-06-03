@@ -130,14 +130,12 @@ export function Dashboard() {
           </div>
 
           {isLoading ? (
-            <div className="space-y-2">
+            <div className="divide-y divide-border rounded-md border border-border bg-card">
               {Array.from({ length: 3 }).map((_, i) => (
-                <Card key={i} className="flex items-center justify-between">
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <Skeleton className="h-4 w-1/2" />
-                    <Skeleton className="h-3 w-2/5" />
-                  </div>
-                </Card>
+                <div key={i} className="space-y-2 px-4 py-3.5">
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-3 w-2/5" />
+                </div>
               ))}
             </div>
           ) : recent.length === 0 ? (
@@ -147,9 +145,9 @@ export function Dashboard() {
               </p>
             </Card>
           ) : (
-            <div className="space-y-2">
+            <div className="divide-y divide-border rounded-md border border-border bg-card">
               {recent.map((w) => (
-                <RecentWorkoutCard key={w.id} workout={w} />
+                <RecentWorkoutRow key={w.id} workout={w} />
               ))}
             </div>
           )}
@@ -159,7 +157,7 @@ export function Dashboard() {
   )
 }
 
-function RecentWorkoutCard({
+function RecentWorkoutRow({
   workout,
 }: {
   workout: { id: string; name: string; started_at: string; finished_at: string | null }
@@ -170,16 +168,17 @@ function RecentWorkoutCard({
   const label = days === 0 ? 'Today' : days === 1 ? 'Yesterday' : format(date, 'EEE, MMM d')
 
   return (
-    <Link to={`/workout/${workout.id}`}>
-      <Card className="flex items-center justify-between transition-colors hover:border-primary/40">
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold text-foreground">{workout.name}</div>
-          <div className="mt-0.5 text-xs text-muted-foreground">
-            {label} · {formatDuration(workoutDurationSecs(workout.started_at, workout.finished_at))}
-          </div>
+    <Link
+      to={`/workout/${workout.id}`}
+      className="flex items-center justify-between px-4 py-3.5 transition-colors hover:bg-secondary/40"
+    >
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-semibold text-foreground">{workout.name}</div>
+        <div className="mt-0.5 font-data text-xs text-muted-foreground">
+          {label} · {formatDuration(workoutDurationSecs(workout.started_at, workout.finished_at))}
         </div>
-        <ChevronRightIcon className="text-muted-foreground" size={18} />
-      </Card>
+      </div>
+      <ChevronRightIcon className="shrink-0 text-muted-foreground" size={18} />
     </Link>
   )
 }

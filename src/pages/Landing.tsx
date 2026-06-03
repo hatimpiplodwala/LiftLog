@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { AppLogo } from '@/components/ui/AppLogo'
 
-const highlights = ['Fast logging', 'Auto PRs', 'Progress charts']
+const highlights = ['Fast logging', 'Automatic PRs', 'Progress over time']
 
 const mockupRows = [
   { name: 'Bench Press', sets: '100kg × 5', pr: true },
@@ -12,10 +12,8 @@ const mockupRows = [
 
 export function Landing() {
   return (
-    <div className="relative min-h-dvh overflow-hidden">
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-grid-fade opacity-50" />
-
-      <header className="relative z-10 mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
+    <div className="relative flex min-h-dvh flex-col">
+      <header className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between border-b border-border px-5 sm:px-8">
         <div className="flex items-center gap-2.5">
           <AppLogo size="md" />
           <span className="font-display text-lg font-bold tracking-tight text-foreground">
@@ -30,16 +28,15 @@ export function Landing() {
         </Link>
       </header>
 
-      <main className="relative z-10 mx-auto grid max-w-6xl items-center gap-12 px-5 pb-16 pt-10 sm:px-8 lg:min-h-[calc(100dvh-4rem)] lg:grid-cols-2 lg:gap-10 lg:pb-24 lg:pt-4">
+      <main className="mx-auto grid w-full max-w-6xl flex-1 items-center gap-12 px-5 pb-16 pt-12 sm:px-8 lg:grid-cols-2 lg:gap-12 lg:pb-24 lg:pt-8">
         {/* Left — copy */}
         <div className="max-w-xl">
-          <span className="inline-flex animate-fade-up items-center gap-2 rounded-full border border-border bg-secondary/60 px-4 py-1.5 text-xs font-medium text-muted-foreground">
-            <span className="h-1.5 w-1.5 animate-pulse-glow rounded-full bg-primary" />
+          <p className="animate-fade-up text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
             Free · Mobile-first · Built for lifters
-          </span>
+          </p>
 
           <h1
-            className="mt-6 animate-fade-up font-display text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl"
+            className="mt-5 animate-fade-up font-display text-5xl font-extrabold leading-[1.04] tracking-tight sm:text-6xl lg:text-7xl"
             style={{ animationDelay: '60ms' }}
           >
             Lift heavier.
@@ -48,11 +45,11 @@ export function Landing() {
           </h1>
 
           <p
-            className="mt-6 max-w-md animate-fade-up text-base text-muted-foreground sm:text-lg"
+            className="mt-6 max-w-md animate-fade-up text-base leading-relaxed text-muted-foreground sm:text-lg"
             style={{ animationDelay: '120ms' }}
           >
             Log every set, track every PR, and watch your progress over time. A focused
-            workout tracker that stays out of your way.
+            workout log that stays out of your way.
           </p>
 
           <div
@@ -61,7 +58,7 @@ export function Landing() {
           >
             <Link to="/signup" className="w-full sm:w-auto">
               <Button size="lg" fullWidth>
-                Start lifting — it's free
+                Start training — it's free
               </Button>
             </Link>
             <Link to="/login" className="w-full sm:w-auto">
@@ -72,60 +69,55 @@ export function Landing() {
           </div>
 
           <ul
-            className="mt-8 flex animate-fade-up flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground"
+            className="mt-10 flex animate-fade-up flex-col divide-y divide-border border-y border-border text-sm sm:max-w-md"
             style={{ animationDelay: '240ms' }}
           >
             {highlights.map((h) => (
-              <li key={h} className="flex items-center gap-2">
-                <span aria-hidden className="h-1 w-1 rounded-full bg-primary" />
+              <li key={h} className="flex items-center gap-3 py-3 text-muted-foreground">
+                <span aria-hidden className="font-data text-xs text-primary">
+                  ↳
+                </span>
                 {h}
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Right — workout mockup */}
+        {/* Right — log panel */}
         <div
           className="w-full animate-fade-up lg:justify-self-end"
           style={{ animationDelay: '300ms' }}
         >
-          <div className="glass-strong relative mx-auto w-full max-w-md rounded-xl p-4 sm:p-6">
-            <div className="rounded-lg border border-border bg-background/60 p-4 sm:p-6">
-              <div className="flex items-center justify-between border-b border-border pb-3">
-                <div className="text-left">
-                  <div className="font-display text-sm font-bold text-foreground">
-                    Push Day · Tuesday
-                  </div>
-                  <div className="text-[11px] text-muted-foreground">42:18 · 18 sets</div>
-                </div>
-                <span className="rounded-md border border-primary/50 bg-primary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
-                  PR
-                </span>
-              </div>
-              <div className="mt-4 space-y-2 text-left text-sm">
-                {mockupRows.map((row) => (
-                  <div
-                    key={row.name}
-                    className="flex items-center justify-between rounded-md border border-border bg-secondary/40 px-3 py-2"
-                  >
-                    <span className="font-semibold text-foreground">{row.name}</span>
-                    <span className="flex items-center gap-2 tabular-nums text-muted-foreground">
-                      {row.sets}
-                      {row.pr && (
-                        <span className="rounded bg-primary/15 px-1.5 text-[10px] font-bold text-primary">
-                          PR
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                ))}
-              </div>
+          <div className="mx-auto w-full max-w-md border border-border bg-card">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
+              <span className="font-display text-sm font-bold tracking-tight text-foreground">
+                Push Day · Tue
+              </span>
+              <span className="font-data text-xs text-muted-foreground">42:18 · 18 sets</span>
             </div>
+            <ul className="divide-y divide-border">
+              {mockupRows.map((row) => (
+                <li
+                  key={row.name}
+                  className="flex items-center justify-between px-4 py-3 sm:px-5"
+                >
+                  <span className="text-sm font-medium text-foreground">{row.name}</span>
+                  <span className="flex items-center gap-2.5">
+                    <span className="font-data text-sm text-muted-foreground">{row.sets}</span>
+                    {row.pr && (
+                      <span className="font-data text-[10px] font-semibold uppercase tracking-wider text-primary">
+                        PR
+                      </span>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </main>
 
-      <footer className="relative z-10 border-t border-border py-6 text-center text-xs text-muted-foreground">
+      <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
         LiftLog
       </footer>
     </div>

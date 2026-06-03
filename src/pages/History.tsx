@@ -63,16 +63,16 @@ export function History() {
     <div>
       <PageHeader title="History" subtitle="Your completed workouts" />
 
-      <div className="space-y-2 px-4 pb-10 sm:px-6">
+      <div className="px-4 pb-10 sm:px-6">
         {isLoading ? (
-          Array.from({ length: 5 }).map((_, i) => (
-            <Card key={i} className="flex items-center gap-3">
-              <div className="min-w-0 flex-1 space-y-2">
+          <div className="divide-y divide-border rounded-md border border-border bg-card">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="space-y-2 px-4 py-3.5">
                 <Skeleton className="h-4 w-2/5" />
                 <Skeleton className="h-3 w-3/5" />
               </div>
-            </Card>
-          ))
+            ))}
+          </div>
         ) : !workouts || workouts.length === 0 ? (
           <Card className="text-center">
             <p className="text-sm text-muted-foreground">No workouts logged yet.</p>
@@ -84,29 +84,35 @@ export function History() {
             </Link>
           </Card>
         ) : (
-          workouts.map((w) => {
-            const s = summary.get(w.id)
-            const date = new Date(w.started_at)
-            const days = differenceInCalendarDays(new Date(), date)
-            const dateLabel =
-              days === 0 ? 'Today' : days === 1 ? 'Yesterday' : format(date, 'EEE, MMM d')
-            return (
-              <Link key={w.id} to={`/workout/${w.id}`}>
-                <Card className="flex items-center gap-3 transition-colors hover:border-primary/40">
+          <div className="divide-y divide-border rounded-md border border-border bg-card">
+            {workouts.map((w) => {
+              const s = summary.get(w.id)
+              const date = new Date(w.started_at)
+              const days = differenceInCalendarDays(new Date(), date)
+              const dateLabel =
+                days === 0 ? 'Today' : days === 1 ? 'Yesterday' : format(date, 'EEE, MMM d')
+              return (
+                <Link
+                  key={w.id}
+                  to={`/workout/${w.id}`}
+                  className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-secondary/40"
+                >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
                       <h3 className="truncate text-sm font-bold text-foreground">{w.name}</h3>
-                      <span className="shrink-0 text-xs text-muted-foreground">{dateLabel}</span>
+                      <span className="shrink-0 font-data text-xs text-muted-foreground">
+                        {dateLabel}
+                      </span>
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-data text-xs text-muted-foreground">
                       <span>{formatDuration(workoutDurationSecs(w.started_at, w.finished_at))}</span>
-                      <span>·</span>
+                      <span className="text-border">·</span>
                       <span>{s?.exerciseIds.size ?? 0} exercises</span>
-                      <span>·</span>
+                      <span className="text-border">·</span>
                       <span>{s?.setCount ?? 0} sets</span>
                       {(s?.volumeKg ?? 0) > 0 && (
                         <>
-                          <span>·</span>
+                          <span className="text-border">·</span>
                           <span>
                             {formatWeight(s!.volumeKg, units)} {units}
                           </span>
@@ -115,10 +121,10 @@ export function History() {
                     </div>
                   </div>
                   <ChevronRightIcon className="shrink-0 text-muted-foreground" size={18} />
-                </Card>
-              </Link>
-            )
-          })
+                </Link>
+              )
+            })}
+          </div>
         )}
       </div>
     </div>

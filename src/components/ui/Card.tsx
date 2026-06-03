@@ -2,7 +2,7 @@ import { forwardRef, type HTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'glow' | 'flat'
+  variant?: 'default' | 'flat'
 }
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(
@@ -13,7 +13,6 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         className={cn(
           'rounded-lg p-4 text-card-foreground',
           variant === 'default' && 'glass',
-          variant === 'glow' && 'glass shadow-glow-emerald',
           variant === 'flat' && 'border border-border bg-card',
           className,
         )}

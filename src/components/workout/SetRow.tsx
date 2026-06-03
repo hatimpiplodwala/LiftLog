@@ -72,7 +72,7 @@ export function SetRow({ index, exerciseType, units, existing, prefill, onSave, 
         flash && 'animate-log-flash',
       )}
     >
-      <span className="w-6 shrink-0 text-center text-xs font-semibold tabular-nums text-muted-foreground">
+      <span className="font-data w-6 shrink-0 text-center text-xs font-semibold text-muted-foreground">
         {index}
       </span>
 
@@ -108,7 +108,7 @@ export function SetRow({ index, exerciseType, units, existing, prefill, onSave, 
         <span
           title="Personal record"
           aria-label="Personal record"
-          className="inline-flex h-6 shrink-0 animate-pop items-center rounded-md border border-primary/50 bg-primary/15 px-1.5 text-[10px] font-bold uppercase tracking-wider text-primary"
+          className="font-data inline-flex shrink-0 animate-pop items-center px-1 text-[10px] font-semibold uppercase tracking-wider text-primary"
         >
           PR
         </span>
@@ -166,7 +166,7 @@ function NumField({
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         placeholder={placeholder}
-        className="h-10 w-full rounded-md border border-input bg-secondary/40 px-3 pr-10 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="font-data h-10 w-full rounded-md border border-input bg-secondary/40 px-3 pr-10 text-sm text-foreground placeholder:font-sans placeholder:text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
       <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-medium uppercase text-muted-foreground">
         {suffix}

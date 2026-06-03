@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,36 +6,36 @@
 
 @layer base {
   :root {
-    /* Black + emerald theme (dark only) */
-    --background: 0 0% 3.5%;
-    --foreground: 150 6% 96%;
+    /* Editorial logbook — flat black + refined emerald, warm paper text */
+    --background: 0 0% 4%;
+    --foreground: 40 7% 92%;
 
-    --card: 0 0% 6%;
-    --card-foreground: 150 6% 96%;
+    --card: 0 0% 6.5%;
+    --card-foreground: 40 7% 92%;
 
-    --popover: 0 0% 5%;
-    --popover-foreground: 150 6% 96%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 40 7% 92%;
 
-    --primary: 160 84% 39%;
+    --primary: 158 64% 41%;
     --primary-foreground: 0 0% 4%;
 
     --secondary: 0 0% 10%;
-    --secondary-foreground: 150 6% 96%;
+    --secondary-foreground: 40 7% 92%;
 
     --muted: 0 0% 10%;
-    --muted-foreground: 150 4% 64%;
+    --muted-foreground: 40 5% 60%;
 
-    --accent: 160 60% 14%;
-    --accent-foreground: 152 76% 80%;
+    --accent: 158 42% 14%;
+    --accent-foreground: 152 48% 80%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 14%;
+    --border: 0 0% 15%;
     --input: 0 0% 12%;
-    --ring: 160 84% 45%;
+    --ring: 158 64% 45%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
   }
 
   * {
@@ -51,10 +51,6 @@
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: 'cv11', 'ss01';
     background-color: hsl(var(--background));
-    background-image:
-      radial-gradient(800px circle at 12% 0%, hsl(var(--primary) / 0.08), transparent 55%),
-      radial-gradient(700px circle at 90% 100%, hsl(var(--primary) / 0.06), transparent 55%);
-    background-attachment: fixed;
     min-height: 100dvh;
   }
 
@@ -81,30 +77,25 @@
 }
 
 @layer components {
-  /* Subtle glass surface — keeps a touch of personality on the dark base */
+  /* Flat ledger surface — no glow, no glass, just a hairline-ruled panel.
+     Overlays (modals, sheets) get a touch of blur so page content reads behind them. */
   .glass {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0%, rgba(255, 255, 255, 0.005) 100%),
-      hsl(var(--card) / 0.7);
-    backdrop-filter: blur(12px) saturate(140%);
-    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
   }
 
   .glass-strong {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%),
-      hsl(var(--card) / 0.92);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
-    box-shadow:
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
-      0 8px 32px -12px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
-  /* Emerald text accent */
-  .text-emerald-accent {
-    color: hsl(var(--primary));
+  /* Tabular monospace numerals — the logbook's data treatment */
+  .font-data {
+    font-family: theme('fontFamily.mono');
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
   }
 }
 
@@ -118,14 +109,6 @@
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
-  }
-  .bg-grid-fade {
-    background-image:
-      linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-    background-size: 40px 40px;
-    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
-    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
   }
 }
 

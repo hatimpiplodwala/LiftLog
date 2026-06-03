@@ -29,8 +29,6 @@ export function Login() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-grid-fade opacity-40" />
-
       <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-5 py-10">
         <Link to="/" className="mb-8 inline-flex items-center gap-2 self-start">
           <AppLogo size="md" />
