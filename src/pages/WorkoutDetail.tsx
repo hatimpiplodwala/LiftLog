@@ -224,7 +224,7 @@ export function WorkoutDetail() {
                 to={`/workout/${workout.id}/active`}
                 className="font-semibold text-primary hover:underline"
               >
-                Resume →
+                Resume
               </Link>
             </p>
           </Card>

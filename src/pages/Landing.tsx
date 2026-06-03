@@ -73,10 +73,7 @@ export function Landing() {
             style={{ animationDelay: '240ms' }}
           >
             {highlights.map((h) => (
-              <li key={h} className="flex items-center gap-3 py-3 text-muted-foreground">
-                <span aria-hidden className="font-data text-xs text-primary">
-                  ↳
-                </span>
+              <li key={h} className="py-3 text-muted-foreground">
                 {h}
               </li>
             ))}

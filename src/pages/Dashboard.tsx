@@ -125,7 +125,7 @@ export function Dashboard() {
               Recent workouts
             </h2>
             <Link to="/history" className="text-xs font-semibold text-primary hover:underline">
-              View all →
+              View all
             </Link>
           </div>
 

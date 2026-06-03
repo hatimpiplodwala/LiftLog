@@ -99,7 +99,7 @@ export function WorkoutShare() {
               The share link may have been revoked or never existed.
             </p>
             <Link to="/" className="mt-4 inline-block text-sm font-semibold text-primary">
-              Go to LiftLog →
+              Go to LiftLog
             </Link>
           </Card>
         ) : (

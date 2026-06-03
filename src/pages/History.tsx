@@ -80,7 +80,7 @@ export function History() {
               to="/workout/new"
               className="mt-3 inline-block text-sm font-semibold text-primary hover:underline"
             >
-              Start your first workout →
+              Start your first workout
             </Link>
           </Card>
         ) : (
