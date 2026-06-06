@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { AppLogo } from '@/components/ui/AppLogo'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -143,9 +144,7 @@ function SharedWorkoutView({
 
       <div className="space-y-3">
         {grouped.length === 0 ? (
-          <Card className="text-center">
-            <p className="text-sm text-muted-foreground">No sets in this workout.</p>
-          </Card>
+          <EmptyState message="No sets in this workout" />
         ) : (
           grouped.map(({ exercise, sets }, idx) => (
             <div

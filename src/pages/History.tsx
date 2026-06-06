@@ -1,15 +1,20 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { format, differenceInCalendarDays } from 'date-fns'
+import { format, differenceInCalendarDays, startOfMonth, isAfter } from 'date-fns'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { ChevronRightIcon } from '@/components/layout/Icons'
+import { WorkoutSummaryPane } from '@/components/workout/WorkoutSummaryPane'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useWorkouts } from '@/hooks/useWorkouts'
 import { useProfile } from '@/hooks/useProfile'
-import { formatWeight, formatDuration, workoutDurationSecs } from '@/lib/utils'
+import { cn, formatWeight, formatDuration, workoutDurationSecs } from '@/lib/utils'
+
+// On very wide screens (xl+) History is a master-detail view; a row click
+// previews in the side pane instead of navigating. Below xl it navigates.
+const DETAIL_MQ = '(min-width: 1280px)'
 
 interface SetSummary {
   workout_id: string
@@ -47,6 +52,12 @@ export function History() {
   const workoutIds = useMemo(() => (workouts ?? []).map((w) => w.id), [workouts])
   const { data: sets } = useSetsForWorkouts(workoutIds)
 
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  // Default the detail pane to the most recent workout so it's never empty.
+  useEffect(() => {
+    if (!selectedId && workouts && workouts.length > 0) setSelectedId(workouts[0].id)
+  }, [workouts, selectedId])
+
   const summary = useMemo(() => {
     const map = new Map<string, { volumeKg: number; setCount: number; exerciseIds: Set<string> }>()
     for (const s of sets ?? []) {
@@ -59,11 +70,39 @@ export function History() {
     return map
   }, [sets])
 
+  const totals = useMemo(() => {
+    const monthStart = startOfMonth(new Date())
+    let volumeKg = 0
+    for (const v of summary.values()) volumeKg += v.volumeKg
+    const thisMonth = (workouts ?? []).filter(
+      (w) => w.finished_at && isAfter(new Date(w.finished_at), monthStart),
+    ).length
+    return { count: workouts?.length ?? 0, volumeKg, thisMonth }
+  }, [workouts, summary])
+
   return (
     <div>
       <PageHeader title="History" subtitle="Your completed workouts" />
 
       <div className="px-4 pb-10 sm:px-6">
+        {!isLoading && workouts && workouts.length > 0 && (
+          <div className="mb-5 flex flex-wrap items-center gap-x-6 gap-y-1 border-b border-border pb-4 font-data text-xs text-muted-foreground">
+            <span>
+              <span className="font-semibold text-foreground">{totals.count}</span> workouts
+            </span>
+            <span>
+              <span className="font-semibold text-foreground">
+                {formatWeight(totals.volumeKg, units)}
+              </span>{' '}
+              {units} volume
+            </span>
+            <span>
+              <span className="font-semibold text-foreground">{totals.thisMonth}</span> this month
+            </span>
+          </div>
+        )}
+        <div className="xl:grid xl:grid-cols-[1fr_22rem] xl:divide-x xl:divide-border">
+          <div className="min-w-0 xl:pr-6">
         {isLoading ? (
           <div className="divide-y divide-border rounded-md border border-border bg-card">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -74,58 +113,108 @@ export function History() {
             ))}
           </div>
         ) : !workouts || workouts.length === 0 ? (
-          <Card className="text-center">
-            <p className="text-sm text-muted-foreground">No workouts logged yet.</p>
-            <Link
-              to="/workout/new"
-              className="mt-3 inline-block text-sm font-semibold text-primary hover:underline"
-            >
-              Start your first workout
-            </Link>
-          </Card>
+          <EmptyState
+            message="No workouts logged yet"
+            action={
+              <Link
+                to="/workout/new"
+                className="text-sm font-semibold text-primary hover:underline"
+              >
+                Start your first workout
+              </Link>
+            }
+          />
         ) : (
-          <div className="divide-y divide-border rounded-md border border-border bg-card">
-            {workouts.map((w) => {
-              const s = summary.get(w.id)
-              const date = new Date(w.started_at)
-              const days = differenceInCalendarDays(new Date(), date)
-              const dateLabel =
-                days === 0 ? 'Today' : days === 1 ? 'Yesterday' : format(date, 'EEE, MMM d')
-              return (
-                <Link
-                  key={w.id}
-                  to={`/workout/${w.id}`}
-                  className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-secondary/40"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <h3 className="truncate text-sm font-bold text-foreground">{w.name}</h3>
-                      <span className="shrink-0 font-data text-xs text-muted-foreground">
-                        {dateLabel}
-                      </span>
-                    </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-data text-xs text-muted-foreground">
-                      <span>{formatDuration(workoutDurationSecs(w.started_at, w.finished_at))}</span>
-                      <span className="text-border">·</span>
-                      <span>{s?.exerciseIds.size ?? 0} exercises</span>
-                      <span className="text-border">·</span>
-                      <span>{s?.setCount ?? 0} sets</span>
-                      {(s?.volumeKg ?? 0) > 0 && (
-                        <>
-                          <span className="text-border">·</span>
-                          <span>
-                            {formatWeight(s!.volumeKg, units)} {units}
+          <div className="overflow-hidden rounded-md border border-border bg-card">
+            {/* Column header — wide screens only */}
+            <div className="hidden border-b border-border px-4 py-2 font-data text-[11px] uppercase tracking-wider text-muted-foreground/70 lg:grid lg:grid-cols-[1fr_5rem_5.5rem_4rem_8rem_7rem] lg:items-center lg:gap-3">
+              <span>Workout</span>
+              <span className="text-right">Duration</span>
+              <span className="text-right">Exercises</span>
+              <span className="text-right">Sets</span>
+              <span className="text-right">Volume</span>
+              <span className="text-right">Date</span>
+            </div>
+            <div className="divide-y divide-border">
+              {workouts.map((w) => {
+                const s = summary.get(w.id)
+                const date = new Date(w.started_at)
+                const days = differenceInCalendarDays(new Date(), date)
+                const dateLabel =
+                  days === 0 ? 'Today' : days === 1 ? 'Yesterday' : format(date, 'EEE, MMM d')
+                const duration = formatDuration(workoutDurationSecs(w.started_at, w.finished_at))
+                const exercises = s?.exerciseIds.size ?? 0
+                const setCount = s?.setCount ?? 0
+                const volume = s?.volumeKg ?? 0
+                return (
+                  <Link
+                    key={w.id}
+                    to={`/workout/${w.id}`}
+                    onClick={(e) => {
+                      // On wide screens preview in the side pane instead of navigating.
+                      if (window.matchMedia(DETAIL_MQ).matches) {
+                        e.preventDefault()
+                        setSelectedId(w.id)
+                      }
+                    }}
+                    className={cn(
+                      'block px-4 py-3.5 transition-colors hover:bg-secondary/40',
+                      selectedId === w.id && 'xl:bg-secondary/60',
+                    )}
+                  >
+                    {/* Mobile: stacked */}
+                    <div className="flex items-center gap-3 lg:hidden">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <h3 className="truncate text-sm font-bold text-foreground">{w.name}</h3>
+                          <span className="shrink-0 font-data text-xs text-muted-foreground">
+                            {dateLabel}
                           </span>
-                        </>
-                      )}
+                        </div>
+                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-data text-xs text-muted-foreground">
+                          <span>{duration}</span>
+                          <span className="text-border">·</span>
+                          <span>{exercises} exercises</span>
+                          <span className="text-border">·</span>
+                          <span>{setCount} sets</span>
+                          {volume > 0 && (
+                            <>
+                              <span className="text-border">·</span>
+                              <span>
+                                {formatWeight(volume, units)} {units}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <ChevronRightIcon className="shrink-0 text-muted-foreground" size={18} />
                     </div>
-                  </div>
-                  <ChevronRightIcon className="shrink-0 text-muted-foreground" size={18} />
-                </Link>
-              )
-            })}
+
+                    {/* Desktop: aligned columns */}
+                    <div className="hidden lg:grid lg:grid-cols-[1fr_5rem_5.5rem_4rem_8rem_7rem] lg:items-center lg:gap-3">
+                      <span className="truncate text-sm font-semibold text-foreground">{w.name}</span>
+                      <span className="text-right font-data text-xs text-muted-foreground">{duration}</span>
+                      <span className="text-right font-data text-xs text-muted-foreground">{exercises}</span>
+                      <span className="text-right font-data text-xs text-muted-foreground">{setCount}</span>
+                      <span className="text-right font-data text-xs text-muted-foreground">
+                        {volume > 0 ? `${formatWeight(volume, units)} ${units}` : '—'}
+                      </span>
+                      <span className="text-right font-data text-xs text-muted-foreground">{dateLabel}</span>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
           </div>
         )}
+          </div>
+
+          <aside className="hidden xl:block xl:pl-6">
+            <div className="xl:sticky xl:top-6">
+              <WorkoutSummaryPane workoutId={selectedId} />
+            </div>
+          </aside>
+        </div>
       </div>
     </div>
   )

@@ -5,6 +5,7 @@ import { format } from 'date-fns'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
@@ -233,9 +234,7 @@ export function WorkoutDetail() {
         <WorkoutNotes workoutId={workout.id} initialNotes={workout.notes} />
 
         {orderedExerciseIds.length === 0 ? (
-          <Card className="text-center">
-            <p className="text-sm text-muted-foreground">No exercises logged.</p>
-          </Card>
+          <EmptyState message="No exercises logged" />
         ) : (
           orderedExerciseIds.map((eid) => {
             const exercise = exMap.get(eid)

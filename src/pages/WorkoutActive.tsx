@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { Spinner } from '@/components/ui/Spinner'
 import { Badge } from '@/components/ui/Badge'
 import { ArrowLeftIcon, ChevronDownIcon, ChevronUpIcon, PlusIcon, TrashIcon } from '@/components/layout/Icons'
@@ -234,11 +234,10 @@ export function WorkoutActive() {
         <WorkoutNotes workoutId={workout.id} initialNotes={workout.notes} />
 
         {orderedExerciseIds.length === 0 && (
-          <Card className="text-center">
-            <p className="text-sm text-muted-foreground">
-              No exercises yet. Tap "Add exercise" below to get started.
-            </p>
-          </Card>
+          <EmptyState
+            message="No exercises yet"
+            hint='Tap "Add exercise" below to get started.'
+          />
         )}
 
         {orderedExerciseIds.map((eid, idx) => {

@@ -19,7 +19,7 @@ export function Stat({ label, value, unit, highlight }: StatProps) {
       <div className="mt-1 flex items-baseline gap-1">
         <span
           className={cn(
-            'font-data truncate text-2xl font-semibold',
+            'font-data truncate text-xl font-semibold sm:text-2xl',
             highlight ? 'text-primary' : 'text-foreground',
           )}
         >

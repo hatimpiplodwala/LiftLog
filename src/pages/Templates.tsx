@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { Spinner } from '@/components/ui/Spinner'
 import { Badge } from '@/components/ui/Badge'
 import { ChevronRightIcon, TrashIcon } from '@/components/layout/Icons'
@@ -32,12 +33,10 @@ export function Templates() {
             <Spinner />
           </div>
         ) : !templates || templates.length === 0 ? (
-          <Card className="text-center">
-            <p className="text-sm text-muted-foreground">No templates yet.</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Finish a workout and tap "Save as template" to create one.
-            </p>
-          </Card>
+          <EmptyState
+            message="No templates yet"
+            hint={'Finish a workout and tap "Save as template" to create one.'}
+          />
         ) : (
           templates.map((t) => (
             <TemplateRow

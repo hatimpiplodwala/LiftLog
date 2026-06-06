@@ -15,7 +15,7 @@ import {
 
 const tabs = [
   { to: '/dashboard', label: 'Home', Icon: HomeIcon },
-  { to: '/workout/new', label: 'Workout', Icon: DumbbellIcon },
+  { to: '/workout/new', label: 'Workout', Icon: DumbbellIcon, primary: true },
   { to: '/history', label: 'History', Icon: HistoryIcon },
   { to: '/progress', label: 'Progress', Icon: ChartIcon },
 ]
@@ -59,12 +59,15 @@ export function BottomNav() {
     <>
       <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/90 backdrop-blur safe-bottom sm:hidden">
         <div className="mx-auto flex max-w-md items-stretch justify-around">
-          {tabs.map(({ to, label, Icon }) => (
+          {tabs.map(({ to, label, Icon, primary }) => (
             <NavLink key={to} to={to} className={({ isActive }) => tabClass(isActive)}>
               {({ isActive }) => (
                 <>
                   {isActive && <ActiveBar />}
-                  <Icon size={22} />
+                  <Icon
+                    size={22}
+                    className={primary && !isActive ? 'text-primary' : undefined}
+                  />
                   <span>{label}</span>
                 </>
               )}

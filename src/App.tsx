@@ -48,10 +48,10 @@ function RootRedirect() {
   return user ? <Navigate to="/dashboard" replace /> : <Landing />
 }
 
-function Protected({ children }: { children: React.ReactNode }) {
+function Protected({ children, wide }: { children: React.ReactNode; wide?: boolean }) {
   return (
     <ProtectedRoute>
-      <AppShell>{children}</AppShell>
+      <AppShell wide={wide}>{children}</AppShell>
     </ProtectedRoute>
   )
 }
@@ -70,7 +70,7 @@ export default function App() {
         <Route path="/workout/new" element={<Protected><WorkoutNew /></Protected>} />
         <Route path="/workout/:id/active" element={<ProtectedRoute><WorkoutActive /></ProtectedRoute>} />
         <Route path="/workout/:id" element={<Protected><WorkoutDetail /></Protected>} />
-        <Route path="/history" element={<Protected><History /></Protected>} />
+        <Route path="/history" element={<Protected wide><History /></Protected>} />
         <Route path="/exercises" element={<Protected><Exercises /></Protected>} />
         <Route path="/templates" element={<Protected><Templates /></Protected>} />
         <Route path="/progress" element={<Protected><Progress /></Protected>} />

@@ -7,6 +7,8 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Stat } from '@/components/ui/Stat'
+import { SectionHeader } from '@/components/ui/SectionHeader'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { ChevronRightIcon, PlusIcon, RepeatIcon } from '@/components/layout/Icons'
 import { HeatmapCalendar } from '@/components/ui/HeatmapCalendar'
 import { useProfile } from '@/hooks/useProfile'
@@ -114,9 +116,7 @@ export function Dashboard() {
             )}
 
             <section>
-              <h2 className="mb-3 px-1 font-display text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                Consistency
-              </h2>
+              <SectionHeader title="Consistency" />
               <Card className="px-3 py-4">
                 <HeatmapCalendar finishedAts={finishedAts ?? []} />
               </Card>
@@ -125,14 +125,15 @@ export function Dashboard() {
 
           {/* Right — recent workouts */}
           <section className="mt-5 lg:mt-0 lg:border-l lg:border-border lg:pl-8">
-            <div className="mb-3 flex items-center justify-between px-1">
-              <h2 className="font-display text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                Recent workouts
-              </h2>
-              <Link to="/history" className="text-xs font-semibold text-primary hover:underline">
-                View all
-              </Link>
-            </div>
+            <SectionHeader
+              title="Recent workouts"
+              count={recent.length || undefined}
+              action={
+                <Link to="/history" className="text-xs font-semibold text-primary hover:underline">
+                  View all
+                </Link>
+              }
+            />
 
             {isLoading ? (
             <div className="divide-y divide-border rounded-md border border-border bg-card">
@@ -144,11 +145,10 @@ export function Dashboard() {
               ))}
             </div>
           ) : recent.length === 0 ? (
-            <Card className="text-center">
-              <p className="text-sm text-muted-foreground">
-                No workouts yet. Tap "Start workout" above.
-              </p>
-            </Card>
+            <EmptyState
+              message="No workouts yet"
+              hint="Tap Start workout above to log your first session."
+            />
           ) : (
             <div className="divide-y divide-border rounded-md border border-border bg-card">
               {recent.map((w) => (

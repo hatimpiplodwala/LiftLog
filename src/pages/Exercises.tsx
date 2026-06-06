@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
@@ -127,9 +127,10 @@ export function Exercises() {
             <Spinner />
           </div>
         ) : filtered.length === 0 ? (
-          <Card className="text-center">
-            <p className="text-sm text-muted-foreground">No exercises match.</p>
-          </Card>
+          <EmptyState
+            message="No exercises match"
+            hint="Try a different search or category, or add your own."
+          />
         ) : (
           <div className="divide-y divide-border rounded-md border border-border bg-card">
             {filtered.map((e) => {

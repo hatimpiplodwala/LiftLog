@@ -7,8 +7,9 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatWeight(weightKg: number | null, units: 'kg' | 'lbs'): string {
   if (weightKg == null) return '—'
-  if (units === 'lbs') return `${Math.round(weightKg * 2.20462 * 10) / 10}`
-  return `${weightKg}`
+  const value = units === 'lbs' ? Math.round(weightKg * 2.20462 * 10) / 10 : weightKg
+  // Group thousands so large volume totals read as "12,480" not "12480".
+  return value.toLocaleString('en-US')
 }
 
 export function toKg(value: number, units: 'kg' | 'lbs'): number {

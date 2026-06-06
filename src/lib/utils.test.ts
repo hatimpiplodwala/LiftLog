@@ -33,6 +33,11 @@ describe('formatWeight', () => {
     // 100 kg * 2.20462 = 220.462 -> 220.5
     expect(formatWeight(100, 'lbs')).toBe('220.5')
   })
+
+  it('groups thousands for large volume totals', () => {
+    expect(formatWeight(12480, 'kg')).toBe('12,480')
+    expect(formatWeight(1250.5, 'kg')).toBe('1,250.5')
+  })
 })
 
 describe('toKg / fromKg', () => {
