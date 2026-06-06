@@ -260,13 +260,15 @@ export function WorkoutActive() {
           )
         })}
 
-        <button
-          type="button"
-          onClick={() => setPickerOpen(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-transparent py-4 text-sm font-semibold text-muted-foreground hover:border-primary hover:text-primary"
-        >
-          <PlusIcon size={18} /> Add exercise
-        </button>
+        <div className="sticky bottom-0 z-20 -mx-3 border-t border-border bg-background/90 px-3 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+          <button
+            type="button"
+            onClick={() => setPickerOpen(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-transparent py-3.5 text-sm font-semibold text-muted-foreground hover:border-primary hover:text-primary"
+          >
+            <PlusIcon size={18} /> Add exercise
+          </button>
+        </div>
       </main>
 
       <ExercisePicker

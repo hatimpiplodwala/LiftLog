@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   BarChart,
@@ -232,6 +232,17 @@ function buildMuscleBuckets(sets: MuscleSetRow[], units: Units): MusclePoint[] {
   })
 }
 
+// On large screens the stat band sits in a column beside the chart instead of
+// stacked above it, so the page uses the horizontal space.
+function ChartPanel({ stats, children }: { stats: ReactNode; children: ReactNode }) {
+  return (
+    <div className="lg:grid lg:grid-cols-[14rem_1fr] lg:items-start lg:gap-5">
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">{stats}</div>
+      <Card className="px-2 py-4">{children}</Card>
+    </div>
+  )
+}
+
 export function Progress() {
   const { data: profile } = useProfile()
   const units: Units = profile?.units ?? 'kg'
@@ -337,20 +348,22 @@ export function Progress() {
               ]}
             />
 
-            <div className="grid grid-cols-2 gap-2">
-              <Stat
-                label={`Total (${bucket === 'weekly' ? '12 wks' : '6 mo'})`}
-                value={total.toLocaleString()}
-                unit={units}
-              />
-              <Stat
-                label={`Best ${bucket === 'weekly' ? 'week' : 'month'}`}
-                value={peak.toLocaleString()}
-                unit={units}
-              />
-            </div>
-
-            <Card className="px-2 py-4">
+            <ChartPanel
+              stats={
+                <>
+                  <Stat
+                    label={`Total (${bucket === 'weekly' ? '12 wks' : '6 mo'})`}
+                    value={total.toLocaleString()}
+                    unit={units}
+                  />
+                  <Stat
+                    label={`Best ${bucket === 'weekly' ? 'week' : 'month'}`}
+                    value={peak.toLocaleString()}
+                    unit={units}
+                  />
+                </>
+              }
+            >
               {volumeLoading ? (
                 <Skeleton className="h-56 w-full" />
               ) : allZero ? (
@@ -396,7 +409,7 @@ export function Progress() {
                   </ResponsiveContainer>
                 </div>
               )}
-            </Card>
+            </ChartPanel>
 
             <p className="px-1 text-xs text-muted-foreground">
               Volume = sum of (reps × weight) across every set in each{' '}
@@ -425,16 +438,18 @@ export function Progress() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <Stat label="Sessions" value={String(exPoints.length)} unit="total" />
-                  <Stat
-                    label="Best set"
-                    value={bestWeight > 0 ? String(bestWeight) : '—'}
-                    unit={bestWeight > 0 ? units : ''}
-                  />
-                </div>
-
-                <Card className="px-2 py-4">
+                <ChartPanel
+                  stats={
+                    <>
+                      <Stat label="Sessions" value={String(exPoints.length)} unit="total" />
+                      <Stat
+                        label="Best set"
+                        value={bestWeight > 0 ? String(bestWeight) : '—'}
+                        unit={bestWeight > 0 ? units : ''}
+                      />
+                    </>
+                  }
+                >
                   {exLoading ? (
                     <Skeleton className="h-56 w-full" />
                   ) : exPoints.length === 0 ? (
@@ -491,7 +506,7 @@ export function Progress() {
                       </ResponsiveContainer>
                     </div>
                   )}
-                </Card>
+                </ChartPanel>
 
                 <p className="px-1 text-xs text-muted-foreground">
                   Each point is the heaviest set logged in that session, in {units}.
@@ -538,20 +553,22 @@ export function Progress() {
           </>
         ) : mode === 'muscle' ? (
           <>
-            <div className="grid grid-cols-2 gap-2">
-              <Stat
-                label="Top group (12 wks)"
-                value={topCategory ? topCategory : '—'}
-                unit={topCategory ? categoryTotals[topCategory].toLocaleString() + ' ' + units : ''}
-              />
-              <Stat
-                label="Total volume"
-                value={CATEGORIES.reduce((s, c) => s + categoryTotals[c], 0).toLocaleString()}
-                unit={units}
-              />
-            </div>
-
-            <Card className="px-2 py-4">
+            <ChartPanel
+              stats={
+                <>
+                  <Stat
+                    label="Top group (12 wks)"
+                    value={topCategory ? topCategory : '—'}
+                    unit={topCategory ? categoryTotals[topCategory].toLocaleString() + ' ' + units : ''}
+                  />
+                  <Stat
+                    label="Total volume"
+                    value={CATEGORIES.reduce((s, c) => s + categoryTotals[c], 0).toLocaleString()}
+                    unit={units}
+                  />
+                </>
+              }
+            >
               {muscleLoading ? (
                 <Skeleton className="h-56 w-full" />
               ) : muscleAllZero ? (
@@ -608,7 +625,7 @@ export function Progress() {
                   </ResponsiveContainer>
                 </div>
               )}
-            </Card>
+            </ChartPanel>
 
             <div className="flex flex-wrap gap-x-3 gap-y-1.5 px-1 text-[11px] text-muted-foreground">
               {CATEGORIES.map((c) => (
@@ -629,24 +646,26 @@ export function Progress() {
           </>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-2">
-              <Stat
-                label="Latest"
-                value={bwLatest > 0 ? String(bwLatest) : '—'}
-                unit={bwLatest > 0 ? units : ''}
-              />
-              <Stat
-                label="Change"
-                value={
-                  bodyWeightPoints.length < 2
-                    ? '—'
-                    : `${bwDelta > 0 ? '+' : ''}${bwDelta}`
-                }
-                unit={bodyWeightPoints.length >= 2 ? units : ''}
-              />
-            </div>
-
-            <Card className="px-2 py-4">
+            <ChartPanel
+              stats={
+                <>
+                  <Stat
+                    label="Latest"
+                    value={bwLatest > 0 ? String(bwLatest) : '—'}
+                    unit={bwLatest > 0 ? units : ''}
+                  />
+                  <Stat
+                    label="Change"
+                    value={
+                      bodyWeightPoints.length < 2
+                        ? '—'
+                        : `${bwDelta > 0 ? '+' : ''}${bwDelta}`
+                    }
+                    unit={bodyWeightPoints.length >= 2 ? units : ''}
+                  />
+                </>
+              }
+            >
               {bwLoading ? (
                 <Skeleton className="h-56 w-full" />
               ) : bodyWeightPoints.length === 0 ? (
@@ -700,7 +719,7 @@ export function Progress() {
                   </ResponsiveContainer>
                 </div>
               )}
-            </Card>
+            </ChartPanel>
 
             <p className="px-1 text-xs text-muted-foreground">
               Trend across all your logged body weight entries, in {units}.
