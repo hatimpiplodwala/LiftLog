@@ -5,6 +5,7 @@ supabase/.temp
 supabase/.env
 dist
 dist-ssr
+*.tsbuildinfo
 *.local
 .env.local
 .env.*.local
