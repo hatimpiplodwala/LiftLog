@@ -69,7 +69,7 @@ export function Profile() {
     <div>
       <PageHeader title="Profile" subtitle="Account & preferences" />
 
-      <div className="space-y-4 px-4 pb-10 sm:px-6">
+      <div className="space-y-4 px-4 pb-10 sm:px-6 lg:max-w-2xl">
         <Card>
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">

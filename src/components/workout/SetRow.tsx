@@ -120,7 +120,7 @@ export function SetRow({ index, exerciseType, units, existing, prefill, onSave, 
             type="button"
             onClick={onDelete}
             disabled={busy}
-            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-destructive disabled:opacity-50"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-destructive disabled:opacity-50"
             aria-label="Delete set"
           >
             <TrashIcon size={16} />
@@ -135,7 +135,7 @@ export function SetRow({ index, exerciseType, units, existing, prefill, onSave, 
             (showReps && !reps) ||
             (showDuration && !duration)
           }
-          className="inline-flex h-9 items-center gap-1 rounded-md bg-primary px-3 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90 active:scale-[0.97] disabled:opacity-50"
+          className="inline-flex h-10 items-center gap-1 rounded-md bg-primary px-4 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90 active:scale-[0.97] disabled:opacity-50"
         >
           <CheckIcon size={14} /> Log
         </button>

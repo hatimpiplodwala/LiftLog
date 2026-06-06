@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { format, startOfWeek, addDays, subWeeks, isSameDay, isAfter } from 'date-fns'
 import { cn } from '@/lib/utils'
 
@@ -13,6 +13,14 @@ export function HeatmapCalendar({ finishedAts, weeks = 12 }: Props) {
   // Stable key so memos only invalidate when the calendar day rolls over.
   const todayKey = format(new Date(), 'yyyy-MM-dd')
   const today = useMemo(() => new Date(todayKey + 'T00:00:00'), [todayKey])
+
+  // The grid runs oldest→newest left-to-right; start scrolled to the most
+  // recent weeks so today is visible without dragging (matters on mobile).
+  const scrollRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = scrollRef.current
+    if (el) el.scrollLeft = el.scrollWidth
+  }, [])
 
   const countByDay = useMemo(() => {
     const map = new Map<string, number>()
@@ -50,7 +58,7 @@ export function HeatmapCalendar({ finishedAts, weeks = 12 }: Props) {
   }, [grid])
 
   return (
-    <div className="overflow-x-auto">
+    <div ref={scrollRef} className="overflow-x-auto">
       <div className="inline-flex flex-col gap-1.5">
         <div className="ml-5 grid grid-flow-col auto-cols-[14px] gap-[3px] text-[10px] text-muted-foreground">
           {grid.map((_, i) => {

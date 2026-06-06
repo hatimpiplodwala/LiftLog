@@ -80,56 +80,61 @@ export function Dashboard() {
     <div>
       <PageHeader title={greeting} subtitle={format(new Date(), 'EEEE, MMM d')} />
 
-      <div className="space-y-5 px-4 pb-8 sm:px-6">
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
-          <Stat label="This week" value={String(workoutsThisWeek.length)} unit="workouts" />
-          <Stat label="Volume" value={formatWeight(weeklyVolumeKg, units)} unit={units} />
-          <Stat
-            label="Streak"
-            value={String(streak)}
-            unit={streak === 1 ? 'day' : 'days'}
-            highlight={streak > 0}
-          />
-        </div>
+      <div className="px-4 pb-8 sm:px-6">
+        <div className="lg:grid lg:grid-cols-2 lg:gap-8">
+          {/* Left — stats, actions, consistency */}
+          <div className="space-y-5">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              <Stat label="This week" value={String(workoutsThisWeek.length)} unit="workouts" />
+              <Stat label="Volume" value={formatWeight(weeklyVolumeKg, units)} unit={units} />
+              <Stat
+                label="Streak"
+                value={String(streak)}
+                unit={streak === 1 ? 'day' : 'days'}
+                highlight={streak > 0}
+              />
+            </div>
 
-        <Link to="/workout/new" className="block">
-          <Button size="lg" fullWidth>
-            <PlusIcon size={20} /> Start workout
-          </Button>
-        </Link>
-
-        {lastWorkout && (
-          <Button
-            size="md"
-            variant="secondary"
-            fullWidth
-            loading={repeating}
-            onClick={repeatLast}
-          >
-            <RepeatIcon size={16} /> Repeat last · {lastWorkout.name}
-          </Button>
-        )}
-
-        <section>
-          <h2 className="mb-3 px-1 font-display text-sm font-bold uppercase tracking-wider text-muted-foreground">
-            Consistency
-          </h2>
-          <Card className="px-3 py-4">
-            <HeatmapCalendar finishedAts={finishedAts ?? []} />
-          </Card>
-        </section>
-
-        <section>
-          <div className="mb-3 flex items-center justify-between px-1">
-            <h2 className="font-display text-sm font-bold uppercase tracking-wider text-muted-foreground">
-              Recent workouts
-            </h2>
-            <Link to="/history" className="text-xs font-semibold text-primary hover:underline">
-              View all
+            <Link to="/workout/new" className="block">
+              <Button size="lg" fullWidth>
+                <PlusIcon size={20} /> Start workout
+              </Button>
             </Link>
+
+            {lastWorkout && (
+              <Button
+                size="md"
+                variant="secondary"
+                fullWidth
+                loading={repeating}
+                onClick={repeatLast}
+              >
+                <RepeatIcon size={16} /> Repeat last · {lastWorkout.name}
+              </Button>
+            )}
+
+            <section>
+              <h2 className="mb-3 px-1 font-display text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                Consistency
+              </h2>
+              <Card className="px-3 py-4">
+                <HeatmapCalendar finishedAts={finishedAts ?? []} />
+              </Card>
+            </section>
           </div>
 
-          {isLoading ? (
+          {/* Right — recent workouts */}
+          <section className="mt-5 lg:mt-0 lg:border-l lg:border-border lg:pl-8">
+            <div className="mb-3 flex items-center justify-between px-1">
+              <h2 className="font-display text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                Recent workouts
+              </h2>
+              <Link to="/history" className="text-xs font-semibold text-primary hover:underline">
+                View all
+              </Link>
+            </div>
+
+            {isLoading ? (
             <div className="divide-y divide-border rounded-md border border-border bg-card">
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="space-y-2 px-4 py-3.5">
@@ -151,7 +156,8 @@ export function Dashboard() {
               ))}
             </div>
           )}
-        </section>
+          </section>
+        </div>
       </div>
     </div>
   )

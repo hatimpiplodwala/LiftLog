@@ -395,7 +395,7 @@ function ExerciseBlock({
             type="button"
             onClick={onMoveUp}
             disabled={!canMoveUp}
-            className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+            className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
             aria-label="Move up"
           >
             <ChevronUpIcon size={16} />
@@ -404,7 +404,7 @@ function ExerciseBlock({
             type="button"
             onClick={onMoveDown}
             disabled={!canMoveDown}
-            className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+            className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
             aria-label="Move down"
           >
             <ChevronDownIcon size={16} />
@@ -413,7 +413,7 @@ function ExerciseBlock({
             <button
               type="button"
               onClick={onRemoveEmpty}
-              className="ml-1 rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-destructive"
+              className="ml-1 inline-flex min-h-10 min-w-10 items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-destructive"
               aria-label="Remove exercise"
             >
               <TrashIcon size={16} />

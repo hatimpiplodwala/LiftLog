@@ -17,7 +17,7 @@ export function PageHeader({ title, subtitle, back, right, accent }: PageHeaderP
       {back && (
         <button
           onClick={() => navigate(-1)}
-          className="-ml-1.5 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          className="-ml-1.5 inline-flex min-h-10 min-w-10 items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           aria-label="Back"
         >
           <ArrowLeftIcon size={20} />

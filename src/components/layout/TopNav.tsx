@@ -14,7 +14,7 @@ const links = [
 
 export function TopNav() {
   return (
-    <header className="sticky top-0 z-30 hidden border-b border-border bg-background/80 backdrop-blur sm:block">
+    <header className="sticky top-0 z-30 hidden border-b border-border bg-background/80 backdrop-blur sm:block lg:hidden">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
         <Link to="/dashboard" className="flex shrink-0 items-center gap-2 group">
           <AppLogo size="sm" />
