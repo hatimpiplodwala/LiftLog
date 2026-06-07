@@ -53,6 +53,17 @@ export function History() {
   const { data: sets } = useSetsForWorkouts(workoutIds)
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  // Track whether we're in the master-detail (xl) layout so the detail pane
+  // only mounts — and only fetches — when it's actually visible.
+  const [isWide, setIsWide] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia(DETAIL_MQ).matches,
+  )
+  useEffect(() => {
+    const mql = window.matchMedia(DETAIL_MQ)
+    const onChange = (e: MediaQueryListEvent) => setIsWide(e.matches)
+    mql.addEventListener('change', onChange)
+    return () => mql.removeEventListener('change', onChange)
+  }, [])
   // Default the detail pane to the most recent workout so it's never empty.
   useEffect(() => {
     if (!selectedId && workouts && workouts.length > 0) setSelectedId(workouts[0].id)
@@ -152,7 +163,7 @@ export function History() {
                     to={`/workout/${w.id}`}
                     onClick={(e) => {
                       // On wide screens preview in the side pane instead of navigating.
-                      if (window.matchMedia(DETAIL_MQ).matches) {
+                      if (isWide) {
                         e.preventDefault()
                         setSelectedId(w.id)
                       }
@@ -211,7 +222,7 @@ export function History() {
 
           <aside className="hidden xl:block xl:pl-6">
             <div className="xl:sticky xl:top-6">
-              <WorkoutSummaryPane workoutId={selectedId} />
+              <WorkoutSummaryPane workoutId={isWide ? selectedId : null} />
             </div>
           </aside>
         </div>

@@ -238,7 +238,7 @@ function ChartPanel({ stats, children }: { stats: ReactNode; children: ReactNode
   return (
     <div className="lg:grid lg:grid-cols-[14rem_1fr] lg:items-start lg:gap-5">
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">{stats}</div>
-      <Card className="px-2 py-4">{children}</Card>
+      <Card className="min-w-0 px-2 py-4">{children}</Card>
     </div>
   )
 }
