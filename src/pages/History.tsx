@@ -16,31 +16,38 @@ import { cn, formatWeight, formatDuration, workoutDurationSecs } from '@/lib/uti
 // previews in the side pane instead of navigating. Below xl it navigates.
 const DETAIL_MQ = '(min-width: 1280px)'
 
-interface SetSummary {
+interface WorkoutSummary {
   workout_id: string
-  exercise_id: string
-  reps: number | null
-  weight_kg: number | null
+  set_count: number
+  exercise_count: number
+  volume_kg: number
 }
 
-// Scoped to the workouts the page actually renders (limit: 100) so total
-// payload stays bounded as the user accumulates history. Sorted IDs in the
-// queryKey keep the cache stable across renders that produce the same set.
-function useSetsForWorkouts(workoutIds: string[] | undefined) {
+// Per-workout aggregates computed server-side (get_workout_summaries RPC) so
+// History never transfers the full set rows just to total them. Scoped to the
+// workouts the page renders (limit: 100); sorted IDs in the queryKey keep the
+// cache stable across renders that produce the same set.
+function useSummariesForWorkouts(workoutIds: string[] | undefined) {
   const key = useMemo(
     () => (workoutIds ? [...workoutIds].sort() : undefined),
     [workoutIds],
   )
   return useQuery({
     enabled: !!key && key.length > 0,
-    queryKey: ['history-sets', key],
+    queryKey: ['history-summaries', key],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workout_sets')
-        .select('workout_id, exercise_id, reps, weight_kg')
-        .in('workout_id', key!)
+      const { data, error } = await supabase.rpc('get_workout_summaries', {
+        workout_ids: key!,
+      })
       if (error) throw error
-      return data as SetSummary[]
+      // numeric/bigint can arrive as strings from PostgREST; coerce to number
+      // so the totals reducer sums instead of string-concatenating.
+      return (data as WorkoutSummary[]).map((s) => ({
+        workout_id: s.workout_id,
+        set_count: Number(s.set_count),
+        exercise_count: Number(s.exercise_count),
+        volume_kg: Number(s.volume_kg),
+      }))
     },
   })
 }
@@ -50,7 +57,7 @@ export function History() {
   const units = profile?.units ?? 'kg'
   const { data: workouts, isLoading } = useWorkouts({ finishedOnly: true, limit: 100 })
   const workoutIds = useMemo(() => (workouts ?? []).map((w) => w.id), [workouts])
-  const { data: sets } = useSetsForWorkouts(workoutIds)
+  const { data: summaries } = useSummariesForWorkouts(workoutIds)
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   // Track whether we're in the master-detail (xl) layout so the detail pane
@@ -70,21 +77,15 @@ export function History() {
   }, [workouts, selectedId])
 
   const summary = useMemo(() => {
-    const map = new Map<string, { volumeKg: number; setCount: number; exerciseIds: Set<string> }>()
-    for (const s of sets ?? []) {
-      const entry = map.get(s.workout_id) ?? { volumeKg: 0, setCount: 0, exerciseIds: new Set<string>() }
-      entry.setCount += 1
-      entry.volumeKg += (s.reps ?? 0) * (s.weight_kg ?? 0)
-      entry.exerciseIds.add(s.exercise_id)
-      map.set(s.workout_id, entry)
-    }
+    const map = new Map<string, WorkoutSummary>()
+    for (const s of summaries ?? []) map.set(s.workout_id, s)
     return map
-  }, [sets])
+  }, [summaries])
 
   const totals = useMemo(() => {
     const monthStart = startOfMonth(new Date())
     let volumeKg = 0
-    for (const v of summary.values()) volumeKg += v.volumeKg
+    for (const v of summary.values()) volumeKg += v.volume_kg
     const thisMonth = (workouts ?? []).filter(
       (w) => w.finished_at && isAfter(new Date(w.finished_at), monthStart),
     ).length
@@ -154,9 +155,9 @@ export function History() {
                 const dateLabel =
                   days === 0 ? 'Today' : days === 1 ? 'Yesterday' : format(date, 'EEE, MMM d')
                 const duration = formatDuration(workoutDurationSecs(w.started_at, w.finished_at))
-                const exercises = s?.exerciseIds.size ?? 0
-                const setCount = s?.setCount ?? 0
-                const volume = s?.volumeKg ?? 0
+                const exercises = s?.exercise_count ?? 0
+                const setCount = s?.set_count ?? 0
+                const volume = s?.volume_kg ?? 0
                 return (
                   <Link
                     key={w.id}

@@ -26,25 +26,18 @@ function useSharedWorkout(token: string | undefined) {
     enabled: !!token,
     queryKey: ['shared-workout', token],
     queryFn: async () => {
-      const { data: payload, error: e1 } = await supabase.rpc('get_shared_workout', {
+      const { data: payload, error } = await supabase.rpc('get_shared_workout', {
         token,
       })
-      if (e1) throw e1
+      if (error) throw error
       if (!payload) return null
-      const { workout, sets } = payload as { workout: SharedWorkout; sets: SharedSet[] }
-
-      const exerciseIds = Array.from(new Set(sets.map((s) => s.exercise_id)))
-      let exercises: Exercise[] = []
-      if (exerciseIds.length > 0) {
-        const { data: ex, error: e2 } = await supabase
-          .from('exercises')
-          .select('id, name, category, type')
-          .in('id', exerciseIds)
-        if (e2) throw e2
-        exercises = (ex ?? []) as Exercise[]
+      // The RPC returns exercises (name/category/type) for the workout's sets,
+      // so anon viewers never need direct read access to the exercises table.
+      return payload as {
+        workout: SharedWorkout
+        sets: SharedSet[]
+        exercises: Exercise[]
       }
-
-      return { workout, sets, exercises }
     },
   })
 }
