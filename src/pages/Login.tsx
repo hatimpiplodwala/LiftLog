@@ -37,7 +37,7 @@ export function Login() {
           </span>
         </Link>
 
-        <div className="glass-strong rounded-xl p-6 sm:p-7">
+        <div className="glass-strong animate-fade-up rounded-xl p-6 sm:p-7">
           <h1 className="font-display text-3xl font-extrabold tracking-tight">
             Welcome <span className="text-primary">back.</span>
           </h1>

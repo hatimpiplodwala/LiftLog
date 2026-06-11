@@ -1,12 +1,8 @@
 import { cn } from '@/lib/utils'
 
-// Layout-matching loading placeholder. Reduced-motion is handled globally
-// (index.css neutralizes animations), so animate-pulse degrades to a static block.
+// Layout-matching loading placeholder. The `.shimmer` sweep is defined in
+// index.css; reduced-motion is handled globally (animations neutralized), so it
+// degrades to a static muted block.
 export function Skeleton({ className }: { className?: string }) {
-  return (
-    <div
-      aria-hidden
-      className={cn('animate-pulse rounded-md bg-secondary/60', className)}
-    />
-  )
+  return <div aria-hidden className={cn('shimmer rounded-md', className)} />
 }

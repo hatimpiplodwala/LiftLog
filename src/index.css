@@ -6,36 +6,56 @@
 
 @layer base {
   :root {
-    /* Editorial logbook — flat black + refined emerald, warm paper text */
-    --background: 0 0% 4%;
+    /* Refined ledger — warm near-black surfaces, depth from light, one emerald
+       accent. Neutrals carry a faint warm hue (40deg) so the dark UI reads
+       crafted rather than sterile. */
+    --background: 40 6% 5%;
     --foreground: 40 7% 92%;
 
-    --card: 0 0% 6.5%;
+    --card: 40 5% 7.5%;
     --card-foreground: 40 7% 92%;
 
-    --popover: 0 0% 6%;
+    /* Third surface tier for raised elements (modals, hovered rows). */
+    --card-elevated: 40 5% 10.5%;
+
+    --popover: 40 6% 8%;
     --popover-foreground: 40 7% 92%;
 
-    --primary: 158 64% 41%;
-    --primary-foreground: 0 0% 4%;
+    --primary: 158 64% 43%;
+    --primary-deep: 158 66% 34%;
+    --primary-foreground: 40 12% 5%;
 
-    --secondary: 0 0% 10%;
+    --secondary: 40 4% 12%;
     --secondary-foreground: 40 7% 92%;
 
-    --muted: 0 0% 10%;
-    --muted-foreground: 40 5% 60%;
+    --muted: 40 4% 12%;
+    --muted-foreground: 40 6% 62%;
 
-    --accent: 158 42% 14%;
+    --accent: 158 40% 14%;
     --accent-foreground: 152 48% 80%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 15%;
-    --input: 0 0% 12%;
-    --ring: 158 64% 45%;
+    --border: 40 4% 16%;
+    --input: 40 4% 13%;
+    --ring: 158 64% 46%;
 
     --radius: 0.5rem;
+
+    /* Elevation: a hairline top highlight (light from above) over soft,
+       layered drop shadows. The signature of the "evolved" flat surface. */
+    --shadow-card:
+      inset 0 1px 0 0 hsl(40 30% 100% / 0.04),
+      0 1px 2px 0 hsl(0 0% 0% / 0.35),
+      0 6px 16px -8px hsl(0 0% 0% / 0.4);
+    --shadow-card-hover:
+      inset 0 1px 0 0 hsl(40 30% 100% / 0.06),
+      0 2px 6px 0 hsl(0 0% 0% / 0.38),
+      0 14px 30px -10px hsl(0 0% 0% / 0.55);
+    --shadow-overlay:
+      inset 0 1px 0 0 hsl(40 30% 100% / 0.05),
+      0 16px 50px -12px hsl(0 0% 0% / 0.7);
   }
 
   * {
@@ -77,18 +97,22 @@
 }
 
 @layer components {
-  /* Flat ledger surface — no glow, no glass, just a hairline-ruled panel.
-     Overlays (modals, sheets) get a touch of blur so page content reads behind them. */
+  /* Raised ledger surface — top-lit hairline over a soft drop shadow. Depth
+     comes from light, not glass. Flat ledger tables opt out via Card "flat". */
   .glass {
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow-card);
   }
 
+  /* Overlays (modals, sheets, floating timer) — deeper shadow + blur so page
+     content reads softly behind them. */
   .glass-strong {
-    background: hsl(var(--card));
+    background: hsl(var(--popover));
     border: 1px solid hsl(var(--border));
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    box-shadow: var(--shadow-overlay);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   /* Tabular monospace numerals — the logbook's data treatment */
@@ -96,6 +120,30 @@
     font-family: theme('fontFamily.mono');
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
+  }
+
+  /* Primary action / active accent — subtle vertical emerald gradient so the
+     CTA has dimension instead of a flat fill. */
+  .bg-primary-gradient {
+    background-image: linear-gradient(
+      180deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--primary-deep)) 100%
+    );
+  }
+
+  /* Shimmer loading sweep — replaces the static pulse on skeletons. */
+  .shimmer {
+    background-color: hsl(var(--secondary) / 0.5);
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(40 8% 100% / 0.06) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    animation: shimmer 1.6s ease-in-out infinite;
   }
 }
 
@@ -109,6 +157,31 @@
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Pointer-only hover lift for interactive cards/rows. Touch devices (which
+     report no hover) skip it, so taps don't leave a stuck raised state. */
+  @media (hover: hover) {
+    .hover-lift {
+      transition:
+        transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 220ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hover-lift:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card-hover);
+      border-color: hsl(40 5% 24%);
+    }
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
   }
 }
 

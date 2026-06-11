@@ -135,7 +135,7 @@ export function SetRow({ index, exerciseType, units, existing, prefill, onSave, 
             (showReps && !reps) ||
             (showDuration && !duration)
           }
-          className="inline-flex h-10 items-center gap-1 rounded-md bg-primary px-4 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90 active:scale-[0.97] disabled:opacity-50"
+          className="inline-flex h-10 items-center gap-1 rounded-md bg-primary-gradient px-4 text-xs font-bold text-primary-foreground shadow-card transition-all duration-200 ease-out-expo hover:brightness-110 active:scale-[0.97] active:duration-75 disabled:opacity-50"
         >
           <CheckIcon size={14} /> Log
         </button>
@@ -166,7 +166,7 @@ function NumField({
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         placeholder={placeholder}
-        className="font-data h-10 w-full rounded-md border border-input bg-secondary/40 px-3 pr-10 text-sm text-foreground placeholder:font-sans placeholder:text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="font-data h-10 w-full rounded-md border border-input bg-secondary/40 px-3 pr-10 text-sm text-foreground placeholder:font-sans placeholder:text-muted-foreground transition-[border-color,box-shadow] duration-200 ease-out-expo focus-visible:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
       <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-medium uppercase text-muted-foreground">
         {suffix}

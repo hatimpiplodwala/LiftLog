@@ -41,7 +41,7 @@ export function Sidebar() {
             to={to}
             className={({ isActive }) =>
               cn(
-                'relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                'relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 ease-out-expo',
                 isActive
                   ? 'bg-secondary text-foreground'
                   : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground',
@@ -53,7 +53,7 @@ export function Sidebar() {
                 {isActive && (
                   <span
                     aria-hidden
-                    className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-primary"
+                    className="absolute left-0 top-1/2 h-5 w-0.5 origin-center -translate-y-1/2 rounded-full bg-primary animate-fade-in"
                   />
                 )}
                 <Icon size={18} />

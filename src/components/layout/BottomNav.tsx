@@ -36,7 +36,7 @@ function ActiveBar() {
   return (
     <span
       aria-hidden
-      className="absolute left-1/2 top-0 h-0.5 w-10 -translate-x-1/2 rounded-full bg-primary"
+      className="absolute left-1/2 top-0 h-0.5 w-10 -translate-x-1/2 rounded-full bg-primary animate-fade-in"
     />
   )
 }

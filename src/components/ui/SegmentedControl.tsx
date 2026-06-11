@@ -34,10 +34,10 @@ export function SegmentedControl<T extends string>({
             aria-selected={active}
             onClick={() => onChange(opt.value)}
             className={cn(
-              'flex-1 rounded-sm font-medium capitalize transition-colors',
+              'flex-1 rounded-sm font-medium capitalize transition-all duration-200 ease-out-expo active:scale-95',
               size === 'sm' ? 'py-1 text-xs' : 'py-1.5 text-sm',
               active
-                ? 'bg-card text-foreground shadow-sm'
+                ? 'bg-card-elevated text-foreground shadow-card'
                 : 'text-muted-foreground hover:text-foreground',
             )}
           >

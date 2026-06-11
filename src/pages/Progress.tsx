@@ -184,10 +184,12 @@ function buildExercisePoints(sets: ExerciseSetRow[], units: Units): SessionPoint
   }))
 }
 
-const CHART_AXIS = '#737373'
-const CHART_GRID = '#1f1f1f'
-const CHART_TOOLTIP_BG = '#0f0f0f'
-const CHART_TOOLTIP_BORDER = '#262626'
+// Chart chrome tuned to the warm-neutral UI tokens (not cold grey) so the
+// charts sit in the same palette as the surrounding surfaces.
+const CHART_AXIS = '#8f8a80'
+const CHART_GRID = '#26241f'
+const CHART_TOOLTIP_BG = '#15140f'
+const CHART_TOOLTIP_BORDER = '#2c2a24'
 const CHART_PRIMARY = '#26ab7a'
 
 const CATEGORIES: Category[] = ['chest', 'back', 'legs', 'shoulders', 'arms', 'core', 'cardio']

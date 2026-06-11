@@ -111,7 +111,7 @@ export function Exercises() {
               type="button"
               onClick={() => setCat(c)}
               className={cn(
-                'shrink-0 rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors',
+                'shrink-0 rounded-full border px-3 py-1 text-xs font-medium capitalize transition-all duration-200 ease-out-expo active:scale-95',
                 cat === c
                   ? 'border-primary bg-primary/15 text-primary'
                   : 'border-border bg-secondary text-muted-foreground hover:text-foreground',
@@ -136,7 +136,10 @@ export function Exercises() {
             {filtered.map((e) => {
               const isCustom = e.created_by === user?.id
               return (
-                <div key={e.id} className="flex items-center justify-between gap-2 px-4 py-3">
+                <div
+                  key={e.id}
+                  className="flex items-center justify-between gap-2 px-4 py-3 transition-colors hover:bg-secondary/30"
+                >
                   <div className="min-w-0">
                     <div className="truncate text-sm font-semibold text-foreground">{e.name}</div>
                     <div className="mt-0.5 flex gap-1.5">
@@ -182,7 +185,7 @@ export function Exercises() {
                   type="button"
                   onClick={() => setNewCategory(c)}
                   className={cn(
-                    'rounded-full border px-3 py-1 text-xs font-medium capitalize',
+                    'rounded-full border px-3 py-1 text-xs font-medium capitalize transition-all duration-200 ease-out-expo active:scale-95',
                     newCategory === c
                       ? 'border-primary bg-primary/15 text-primary'
                       : 'border-border bg-secondary text-muted-foreground',
@@ -203,7 +206,7 @@ export function Exercises() {
                   type="button"
                   onClick={() => setNewType(t)}
                   className={cn(
-                    'flex-1 rounded-md border px-3 py-2 text-sm font-medium capitalize',
+                    'flex-1 rounded-md border px-3 py-2 text-sm font-medium capitalize transition-all duration-200 ease-out-expo active:scale-95',
                     newType === t
                       ? 'border-primary bg-primary/15 text-primary'
                       : 'border-border bg-secondary text-muted-foreground',

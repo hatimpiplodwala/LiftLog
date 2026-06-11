@@ -19,6 +19,7 @@ export default {
         foreground: 'hsl(var(--foreground))',
         primary: {
           DEFAULT: 'hsl(var(--primary))',
+          deep: 'hsl(var(--primary-deep))',
           foreground: 'hsl(var(--primary-foreground))',
         },
         secondary: {
@@ -43,10 +44,20 @@ export default {
         },
         card: {
           DEFAULT: 'hsl(var(--card))',
+          elevated: 'hsl(var(--card-elevated))',
           foreground: 'hsl(var(--card-foreground))',
         },
         success: 'hsl(var(--primary))',
         danger: 'hsl(var(--destructive))',
+      },
+      boxShadow: {
+        card: 'var(--shadow-card)',
+        'card-hover': 'var(--shadow-card-hover)',
+        overlay: 'var(--shadow-overlay)',
+      },
+      transitionTimingFunction: {
+        'out-expo': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],

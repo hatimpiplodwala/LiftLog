@@ -92,11 +92,11 @@ function TemplateRow({
   }
 
   return (
-    <Card className="overflow-hidden p-0">
+    <Card className={cn('overflow-hidden p-0', !expanded && 'hover-lift')}>
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-3 p-4 text-left hover:bg-secondary/40"
+        className="flex w-full items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-secondary/40"
       >
         <div className="min-w-0">
           <div className="truncate text-sm font-bold text-foreground">{template.name}</div>
@@ -106,7 +106,7 @@ function TemplateRow({
         </div>
         <ChevronRightIcon
           className={cn(
-            'shrink-0 text-muted-foreground transition-transform',
+            'shrink-0 text-muted-foreground transition-transform duration-200 ease-out-expo',
             expanded && 'rotate-90',
           )}
           size={18}
@@ -114,7 +114,7 @@ function TemplateRow({
       </button>
 
       {expanded && (
-        <div className="space-y-3 border-t border-border bg-secondary/30 p-4">
+        <div className="animate-fade-in space-y-3 border-t border-border bg-secondary/30 p-4">
           {!items ? (
             <div className="flex justify-center py-2">
               <Spinner />
