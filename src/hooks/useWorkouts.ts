@@ -1,8 +1,17 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { format, subMonths } from 'date-fns'
-import { supabase } from '@/lib/supabase'
+import { supabase, unwrap } from '@/lib/supabase'
+import { groupSetsByExercise } from '@/lib/workout'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Workout, WorkoutSet } from '@/types/database.types'
+
+// Every set mutation touches the same derived caches; keep the list in one place.
+// Note: the last-set / previous-session caches only reflect *finished* workouts,
+// so logging in the in-progress session can't change them — no need to refetch.
+function invalidateSetCaches(qc: QueryClient, vars: { workout_id: string }) {
+  qc.invalidateQueries({ queryKey: ['workout-sets', vars.workout_id] })
+  qc.invalidateQueries({ queryKey: ['exercise-prs'] })
+}
 
 export function useWorkouts(opts?: { limit?: number; finishedOnly?: boolean }) {
   const { user } = useAuth()
@@ -17,9 +26,7 @@ export function useWorkouts(opts?: { limit?: number; finishedOnly?: boolean }) {
         .order('started_at', { ascending: false })
       if (opts?.finishedOnly) q = q.not('finished_at', 'is', null)
       if (opts?.limit) q = q.limit(opts.limit)
-      const { data, error } = await q
-      if (error) throw error
-      return data as Workout[]
+      return unwrap<Workout[]>(q)
     },
   })
 }
@@ -33,15 +40,16 @@ export function useFinishedAts() {
     enabled: !!user,
     queryKey: ['finished-ats', user?.id, sinceKey],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workouts')
-        .select('finished_at')
-        .eq('user_id', user!.id)
-        .not('finished_at', 'is', null)
-        .gte('finished_at', since.toISOString())
-        .order('finished_at', { ascending: false })
-      if (error) throw error
-      return (data ?? []).map((r) => r.finished_at as string)
+      const rows = await unwrap<{ finished_at: string }[]>(
+        supabase
+          .from('workouts')
+          .select('finished_at')
+          .eq('user_id', user!.id)
+          .not('finished_at', 'is', null)
+          .gte('finished_at', since.toISOString())
+          .order('finished_at', { ascending: false }),
+      )
+      return rows.map((r) => r.finished_at)
     },
   })
 }
@@ -50,15 +58,8 @@ export function useWorkout(id: string | undefined) {
   return useQuery({
     enabled: !!id,
     queryKey: ['workout', id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workouts')
-        .select('*')
-        .eq('id', id!)
-        .single()
-      if (error) throw error
-      return data as Workout
-    },
+    queryFn: async () =>
+      unwrap<Workout>(supabase.from('workouts').select('*').eq('id', id!).single()),
   })
 }
 
@@ -67,21 +68,14 @@ export function useWorkoutExerciseOrder(workoutId: string | undefined) {
     enabled: !!workoutId,
     queryKey: ['workout-exercise-order', workoutId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workout_sets')
-        .select('exercise_id, set_number, completed_at')
-        .eq('workout_id', workoutId!)
-        .order('completed_at', { ascending: true })
-      if (error) throw error
-      const seen = new Set<string>()
-      const order: string[] = []
-      for (const row of (data ?? []) as { exercise_id: string }[]) {
-        if (!seen.has(row.exercise_id)) {
-          seen.add(row.exercise_id)
-          order.push(row.exercise_id)
-        }
-      }
-      return order
+      const rows = await unwrap<{ exercise_id: string }[]>(
+        supabase
+          .from('workout_sets')
+          .select('exercise_id, set_number, completed_at')
+          .eq('workout_id', workoutId!)
+          .order('completed_at', { ascending: true }),
+      )
+      return groupSetsByExercise(rows).map((g) => g.exerciseId)
     },
   })
 }
@@ -90,15 +84,10 @@ export function useWorkoutSets(workoutId: string | undefined) {
   return useQuery({
     enabled: !!workoutId,
     queryKey: ['workout-sets', workoutId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workout_sets')
-        .select('*')
-        .eq('workout_id', workoutId!)
-        .order('completed_at')
-      if (error) throw error
-      return data as WorkoutSet[]
-    },
+    queryFn: async () =>
+      unwrap<WorkoutSet[]>(
+        supabase.from('workout_sets').select('*').eq('workout_id', workoutId!).order('completed_at'),
+      ),
   })
 }
 
@@ -106,15 +95,10 @@ export function useCreateWorkout() {
   const { user } = useAuth()
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (args: { name: string }) => {
-      const { data, error } = await supabase
-        .from('workouts')
-        .insert({ user_id: user!.id, name: args.name })
-        .select()
-        .single()
-      if (error) throw error
-      return data as Workout
-    },
+    mutationFn: async (args: { name: string }) =>
+      unwrap<Workout>(
+        supabase.from('workouts').insert({ user_id: user!.id, name: args.name }).select().single(),
+      ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['workouts'] }),
   })
 }
@@ -122,16 +106,10 @@ export function useCreateWorkout() {
 export function useUpdateWorkout() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (args: { id: string; updates: Partial<Workout> }) => {
-      const { data, error } = await supabase
-        .from('workouts')
-        .update(args.updates)
-        .eq('id', args.id)
-        .select()
-        .single()
-      if (error) throw error
-      return data as Workout
-    },
+    mutationFn: async (args: { id: string; updates: Partial<Workout> }) =>
+      unwrap<Workout>(
+        supabase.from('workouts').update(args.updates).eq('id', args.id).select().single(),
+      ),
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ['workouts'] })
       qc.invalidateQueries({ queryKey: ['workout', vars.id] })
@@ -143,8 +121,7 @@ export function useDeleteWorkout() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('workouts').delete().eq('id', id)
-      if (error) throw error
+      await unwrap(supabase.from('workouts').delete().eq('id', id))
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['workouts'] }),
   })
@@ -160,21 +137,8 @@ export function useInsertSet() {
       reps: number | null
       weight_kg: number | null
       duration_secs: number | null
-    }) => {
-      const { data, error } = await supabase
-        .from('workout_sets')
-        .insert(args)
-        .select()
-        .single()
-      if (error) throw error
-      return data as WorkoutSet
-    },
-    onSuccess: (_data, vars) => {
-      qc.invalidateQueries({ queryKey: ['workout-sets', vars.workout_id] })
-      qc.invalidateQueries({ queryKey: ['exercise-prs'] })
-      qc.invalidateQueries({ queryKey: ['last-set', vars.exercise_id] })
-      qc.invalidateQueries({ queryKey: ['prev-session-sets', vars.exercise_id] })
-    },
+    }) => unwrap<WorkoutSet>(supabase.from('workout_sets').insert(args).select().single()),
+    onSuccess: (_data, vars) => invalidateSetCaches(qc, vars),
   })
 }
 
@@ -187,18 +151,9 @@ export function useUpdateSet() {
       workout_id: string
       exercise_id: string
     }) => {
-      const { error } = await supabase
-        .from('workout_sets')
-        .update(args.updates)
-        .eq('id', args.id)
-      if (error) throw error
+      await unwrap(supabase.from('workout_sets').update(args.updates).eq('id', args.id))
     },
-    onSuccess: (_data, vars) => {
-      qc.invalidateQueries({ queryKey: ['workout-sets', vars.workout_id] })
-      qc.invalidateQueries({ queryKey: ['exercise-prs'] })
-      qc.invalidateQueries({ queryKey: ['last-set', vars.exercise_id] })
-      qc.invalidateQueries({ queryKey: ['prev-session-sets', vars.exercise_id] })
-    },
+    onSuccess: (_data, vars) => invalidateSetCaches(qc, vars),
   })
 }
 
@@ -206,14 +161,8 @@ export function useDeleteSet() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (args: { id: string; workout_id: string; exercise_id: string }) => {
-      const { error } = await supabase.from('workout_sets').delete().eq('id', args.id)
-      if (error) throw error
+      await unwrap(supabase.from('workout_sets').delete().eq('id', args.id))
     },
-    onSuccess: (_data, vars) => {
-      qc.invalidateQueries({ queryKey: ['workout-sets', vars.workout_id] })
-      qc.invalidateQueries({ queryKey: ['exercise-prs'] })
-      qc.invalidateQueries({ queryKey: ['last-set', vars.exercise_id] })
-      qc.invalidateQueries({ queryKey: ['prev-session-sets', vars.exercise_id] })
-    },
+    onSuccess: (_data, vars) => invalidateSetCaches(qc, vars),
   })
 }

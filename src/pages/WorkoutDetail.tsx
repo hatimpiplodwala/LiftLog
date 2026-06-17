@@ -27,7 +27,8 @@ import {
 import { useExercises, useExercisePR, isSetPR } from '@/hooks/useExercises'
 import { useProfile } from '@/hooks/useProfile'
 import { useCreateTemplate } from '@/hooks/useTemplates'
-import { formatWeight, formatDuration, workoutDurationSecs } from '@/lib/utils'
+import { formatWeight, formatDuration, workoutDurationSecs, errMessage } from '@/lib/utils'
+import { sumVolumeKg, groupSetsByExercise } from '@/lib/workout'
 import type { Exercise, WorkoutSet, Units } from '@/types/database.types'
 
 export function WorkoutDetail() {
@@ -56,33 +57,18 @@ export function WorkoutDetail() {
     [exercises],
   )
 
-  const orderedExerciseIds = useMemo(() => {
-    const seen = new Set<string>()
-    const order: string[] = []
-    for (const s of sets ?? []) {
-      if (!seen.has(s.exercise_id)) {
-        seen.add(s.exercise_id)
-        order.push(s.exercise_id)
-      }
-    }
-    for (const eid of extraIds) {
-      if (!seen.has(eid)) {
-        seen.add(eid)
-        order.push(eid)
-      }
-    }
-    return order
+  // Logged exercises (in first-logged order) followed by any picker-added
+  // exercises that don't have sets yet.
+  const grouped = useMemo(() => {
+    const base = groupSetsByExercise(sets ?? [])
+    const seen = new Set(base.map((g) => g.exerciseId))
+    const extras = extraIds
+      .filter((id) => !seen.has(id))
+      .map((id) => ({ exerciseId: id, sets: [] as WorkoutSet[] }))
+    return [...base, ...extras]
   }, [sets, extraIds])
 
-  const setsByExercise = useMemo(() => {
-    const map = new Map<string, WorkoutSet[]>()
-    for (const s of sets ?? []) {
-      const arr = map.get(s.exercise_id) ?? []
-      arr.push(s)
-      map.set(s.exercise_id, arr)
-    }
-    return map
-  }, [sets])
+  const orderedExerciseIds = useMemo(() => grouped.map((g) => g.exerciseId), [grouped])
 
   if (isLoading) {
     return (
@@ -113,10 +99,7 @@ export function WorkoutDetail() {
     )
   }
 
-  const totalVolumeKg = (sets ?? []).reduce(
-    (sum, s) => sum + (s.reps ?? 0) * (s.weight_kg ?? 0),
-    0,
-  )
+  const totalVolumeKg = sumVolumeKg(sets ?? [])
   const totalSets = (sets ?? []).length
   const durationSecs = workoutDurationSecs(workout.started_at, workout.finished_at)
   const isFinished = !!workout.finished_at
@@ -145,7 +128,7 @@ export function WorkoutDetail() {
       await navigator.clipboard.writeText(url)
       setShareOpen(true)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to share')
+      toast.error(errMessage(err, 'Failed to share'))
     } finally {
       setSharing(false)
     }
@@ -163,7 +146,7 @@ export function WorkoutDetail() {
       setShareOpen(false)
       toast.success('Share link revoked')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to revoke')
+      toast.error(errMessage(err, 'Failed to revoke'))
     } finally {
       setRevoking(false)
     }
@@ -185,7 +168,7 @@ export function WorkoutDetail() {
       setTemplateOpen(false)
       setTemplateName('')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to save template')
+      toast.error(errMessage(err, 'Failed to save template'))
     }
   }
 
@@ -233,21 +216,21 @@ export function WorkoutDetail() {
 
         <WorkoutNotes workoutId={workout.id} initialNotes={workout.notes} />
 
-        {orderedExerciseIds.length === 0 ? (
+        {grouped.length === 0 ? (
           <EmptyState message="No exercises logged" />
         ) : (
-          orderedExerciseIds.map((eid) => {
-            const exercise = exMap.get(eid)
+          grouped.map(({ exerciseId, sets: exSets }) => {
+            const exercise = exMap.get(exerciseId)
             if (!exercise) return null
             return (
               <ExerciseSection
-                key={eid}
+                key={exerciseId}
                 workoutId={workout.id}
                 exercise={exercise}
                 units={units}
-                sets={setsByExercise.get(eid) ?? []}
+                sets={exSets}
                 onRemoveEmpty={() =>
-                  setExtraIds((prev) => prev.filter((x) => x !== eid))
+                  setExtraIds((prev) => prev.filter((x) => x !== exerciseId))
                 }
               />
             )
@@ -318,6 +301,7 @@ export function WorkoutDetail() {
             value={templateName}
             onChange={(e) => setTemplateName(e.target.value)}
             placeholder="e.g. Push Day A"
+            maxLength={200}
             autoFocus
           />
           <div className="text-xs text-muted-foreground">
@@ -412,7 +396,7 @@ function ExerciseSection({
                   updates: v,
                 })
               } catch (err) {
-                toast.error(err instanceof Error ? err.message : 'Failed to save')
+                toast.error(errMessage(err, 'Failed to save'))
               }
             }}
             onDelete={async () => {
@@ -423,7 +407,7 @@ function ExerciseSection({
                   exercise_id: exercise.id,
                 })
               } catch (err) {
-                toast.error(err instanceof Error ? err.message : 'Failed to delete')
+                toast.error(errMessage(err, 'Failed to delete'))
               }
             }}
             busy={deleteSet.isPending}
@@ -450,7 +434,7 @@ function ExerciseSection({
                 900,
               )
             } catch (err) {
-              toast.error(err instanceof Error ? err.message : 'Failed to add set')
+              toast.error(errMessage(err, 'Failed to add set'))
             }
           }}
         />

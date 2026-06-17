@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format, subMonths } from 'date-fns'
-import { supabase } from '@/lib/supabase'
+import { supabase, unwrap } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { BodyWeightLog } from '@/types/database.types'
 
@@ -14,17 +14,16 @@ export function useBodyWeights(opts?: { enabled?: boolean }) {
   return useQuery({
     enabled: !!user && (opts?.enabled ?? true),
     queryKey: ['body-weights', user?.id, sinceKey],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('body_weight_logs')
-        .select('*')
-        .eq('user_id', user!.id)
-        .gte('logged_at', since.toISOString())
-        .order('logged_at', { ascending: false })
-        .limit(500)
-      if (error) throw error
-      return data as BodyWeightLog[]
-    },
+    queryFn: async () =>
+      unwrap<BodyWeightLog[]>(
+        supabase
+          .from('body_weight_logs')
+          .select('*')
+          .eq('user_id', user!.id)
+          .gte('logged_at', since.toISOString())
+          .order('logged_at', { ascending: false })
+          .limit(500),
+      ),
   })
 }
 
@@ -32,15 +31,14 @@ export function useInsertBodyWeight() {
   const { user } = useAuth()
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (args: { weight_kg: number }) => {
-      const { data, error } = await supabase
-        .from('body_weight_logs')
-        .insert({ user_id: user!.id, weight_kg: args.weight_kg })
-        .select()
-        .single()
-      if (error) throw error
-      return data as BodyWeightLog
-    },
+    mutationFn: async (args: { weight_kg: number }) =>
+      unwrap<BodyWeightLog>(
+        supabase
+          .from('body_weight_logs')
+          .insert({ user_id: user!.id, weight_kg: args.weight_kg })
+          .select()
+          .single(),
+      ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['body-weights'] }),
   })
 }
@@ -49,8 +47,7 @@ export function useDeleteBodyWeight() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('body_weight_logs').delete().eq('id', id)
-      if (error) throw error
+      await unwrap(supabase.from('body_weight_logs').delete().eq('id', id))
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['body-weights'] }),
   })

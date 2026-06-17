@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { ChevronRightIcon } from '@/components/layout/Icons'
 import { WorkoutSummaryPane } from '@/components/workout/WorkoutSummaryPane'
 import { useQuery } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { supabase, unwrap } from '@/lib/supabase'
 import { useWorkouts } from '@/hooks/useWorkouts'
 import { useProfile } from '@/hooks/useProfile'
 import { cn, formatWeight, formatDuration, workoutDurationSecs } from '@/lib/utils'
@@ -36,13 +36,12 @@ function useSummariesForWorkouts(workoutIds: string[] | undefined) {
     enabled: !!key && key.length > 0,
     queryKey: ['history-summaries', key],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_workout_summaries', {
-        workout_ids: key!,
-      })
-      if (error) throw error
+      const rows = await unwrap<WorkoutSummary[]>(
+        supabase.rpc('get_workout_summaries', { workout_ids: key! }),
+      )
       // numeric/bigint can arrive as strings from PostgREST; coerce to number
       // so the totals reducer sums instead of string-concatenating.
-      return (data as WorkoutSummary[]).map((s) => ({
+      return rows.map((s) => ({
         workout_id: s.workout_id,
         set_count: Number(s.set_count),
         exercise_count: Number(s.exercise_count),

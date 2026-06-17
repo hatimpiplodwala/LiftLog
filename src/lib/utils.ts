@@ -5,6 +5,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Pulls a user-facing message off a thrown value, falling back when it isn't an Error.
+export function errMessage(err: unknown, fallback: string): string {
+  return err instanceof Error ? err.message : fallback
+}
+
 export function formatWeight(weightKg: number | null, units: 'kg' | 'lbs'): string {
   if (weightKg == null) return '—'
   const value = units === 'lbs' ? Math.round(weightKg * 2.20462 * 10) / 10 : weightKg

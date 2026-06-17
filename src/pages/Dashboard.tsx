@@ -13,27 +13,24 @@ import { ChevronRightIcon, PlusIcon, RepeatIcon } from '@/components/layout/Icon
 import { HeatmapCalendar } from '@/components/ui/HeatmapCalendar'
 import { useProfile } from '@/hooks/useProfile'
 import { useWorkouts, useCreateWorkout, useFinishedAts } from '@/hooks/useWorkouts'
-import { supabase } from '@/lib/supabase'
+import { supabase, unwrap } from '@/lib/supabase'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
-import { formatWeight, formatDuration, workoutDurationSecs } from '@/lib/utils'
+import { formatWeight, formatDuration, workoutDurationSecs, errMessage } from '@/lib/utils'
 import { computeStreak } from '@/lib/streak'
 
-function useWeeklySetsTotal() {
+// Weekly volume, summed server-side from per-workout aggregates (get_workout_volume RPC).
+function useWeeklyVolumeKg() {
   const { user } = useAuth()
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
   return useQuery({
     enabled: !!user,
     queryKey: ['weekly-sets', user?.id, weekStart.toISOString()],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workout_sets')
-        .select('reps, weight_kg, workouts!inner(user_id, finished_at)')
-        .eq('workouts.user_id', user!.id)
-        .not('workouts.finished_at', 'is', null)
-        .gte('workouts.finished_at', weekStart.toISOString())
-      if (error) throw error
-      return data as Array<{ reps: number | null; weight_kg: number | null }>
+    queryFn: async (): Promise<number> => {
+      const rows = await unwrap<{ volume_kg: number | string }[]>(
+        supabase.rpc('get_workout_volume', { since: weekStart.toISOString() }),
+      )
+      return rows.reduce((sum, r) => sum + Number(r.volume_kg), 0)
     },
   })
 }
@@ -44,7 +41,7 @@ export function Dashboard() {
   const units = profile?.units ?? 'kg'
   const { data: workouts, isLoading } = useWorkouts({ finishedOnly: true, limit: 12 })
   const { data: finishedAts } = useFinishedAts()
-  const { data: weekSets } = useWeeklySetsTotal()
+  const { data: weeklyVolumeKg = 0 } = useWeeklyVolumeKg()
   const createWorkout = useCreateWorkout()
   const [repeating, setRepeating] = useState(false)
 
@@ -58,7 +55,7 @@ export function Dashboard() {
       navigate(`/workout/${created.id}/active?repeatFrom=${lastWorkout.id}`)
     } catch (err) {
       setRepeating(false)
-      toast.error(err instanceof Error ? err.message : 'Failed to start workout')
+      toast.error(errMessage(err, 'Failed to start workout'))
     }
   }
 
@@ -69,10 +66,6 @@ export function Dashboard() {
     )
   }, [workouts])
 
-  const weeklyVolumeKg = useMemo(
-    () => (weekSets ?? []).reduce((sum, s) => sum + (s.reps ?? 0) * (s.weight_kg ?? 0), 0),
-    [weekSets],
-  )
   const streak = useMemo(() => computeStreak(finishedAts ?? []), [finishedAts])
   const recent = useMemo(() => (workouts ?? []).slice(0, 3), [workouts])
 

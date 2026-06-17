@@ -29,7 +29,7 @@ import { Stat } from '@/components/ui/Stat'
 import { Input } from '@/components/ui/Input'
 import { SegmentedControl } from '@/components/ui/SegmentedControl'
 import { SearchIcon } from '@/components/layout/Icons'
-import { supabase } from '@/lib/supabase'
+import { supabase, unwrap } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfile } from '@/hooks/useProfile'
 import { useExercises } from '@/hooks/useExercises'
@@ -40,10 +40,11 @@ import type { Category, Exercise, Units } from '@/types/database.types'
 type Bucket = 'weekly' | 'monthly'
 type Mode = 'volume' | 'exercise' | 'muscle' | 'bodyweight'
 
-interface SetRow {
-  reps: number | null
-  weight_kg: number | null
-  workouts: { finished_at: string | null; user_id: string }
+// Volume pre-summed per workout server-side (get_workout_volume RPC); the chart
+// still buckets by week/month client-side off each workout's finished_at.
+interface WorkoutVolumeRow {
+  finished_at: string
+  volume_kg: number
 }
 
 interface ExerciseSetRow {
@@ -52,11 +53,10 @@ interface ExerciseSetRow {
   workouts: { finished_at: string }
 }
 
-interface MuscleSetRow {
-  reps: number | null
-  weight_kg: number | null
-  workouts: { finished_at: string }
-  exercises: { category: Category }
+interface MuscleVolumeRow {
+  finished_at: string
+  category: Category
+  volume_kg: number
 }
 
 // Server-bounded to prevent unbounded growth; day-granular sinceKey keeps the cache stable within a session.
@@ -67,15 +67,11 @@ function useVolumeSets() {
   return useQuery({
     enabled: !!user,
     queryKey: ['volume-sets', user?.id, sinceKey],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workout_sets')
-        .select('reps, weight_kg, workouts!inner(user_id, finished_at)')
-        .eq('workouts.user_id', user!.id)
-        .not('workouts.finished_at', 'is', null)
-        .gte('workouts.finished_at', since.toISOString())
-      if (error) throw error
-      return data as unknown as SetRow[]
+    queryFn: async (): Promise<WorkoutVolumeRow[]> => {
+      const rows = await unwrap<{ finished_at: string; volume_kg: number | string }[]>(
+        supabase.rpc('get_workout_volume', { since: since.toISOString() }),
+      )
+      return rows.map((r) => ({ finished_at: r.finished_at, volume_kg: Number(r.volume_kg) }))
     },
   })
 }
@@ -87,17 +83,15 @@ function useMuscleSets(enabled: boolean) {
   return useQuery({
     enabled: !!user && enabled,
     queryKey: ['muscle-sets', user?.id, sinceKey],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workout_sets')
-        .select(
-          'reps, weight_kg, workouts!inner(user_id, finished_at), exercises!inner(category)',
-        )
-        .eq('workouts.user_id', user!.id)
-        .not('workouts.finished_at', 'is', null)
-        .gte('workouts.finished_at', since.toISOString())
-      if (error) throw error
-      return data as unknown as MuscleSetRow[]
+    queryFn: async (): Promise<MuscleVolumeRow[]> => {
+      const rows = await unwrap<
+        { finished_at: string; category: Category; volume_kg: number | string }[]
+      >(supabase.rpc('get_muscle_volume', { since: since.toISOString() }))
+      return rows.map((r) => ({
+        finished_at: r.finished_at,
+        category: r.category,
+        volume_kg: Number(r.volume_kg),
+      }))
     },
   })
 }
@@ -107,17 +101,16 @@ function useExerciseSets(exerciseId: string | null) {
   return useQuery({
     enabled: !!user && !!exerciseId,
     queryKey: ['exercise-sets', exerciseId, user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workout_sets')
-        .select('reps, weight_kg, workouts!inner(user_id, finished_at)')
-        .eq('exercise_id', exerciseId!)
-        .eq('workouts.user_id', user!.id)
-        .not('workouts.finished_at', 'is', null)
-        .order('completed_at', { ascending: true })
-      if (error) throw error
-      return data as unknown as ExerciseSetRow[]
-    },
+    queryFn: async () =>
+      unwrap<ExerciseSetRow[]>(
+        supabase
+          .from('workout_sets')
+          .select('reps, weight_kg, workouts!inner(user_id, finished_at)')
+          .eq('exercise_id', exerciseId!)
+          .eq('workouts.user_id', user!.id)
+          .not('workouts.finished_at', 'is', null)
+          .order('completed_at', { ascending: true }),
+      ),
   })
 }
 
@@ -126,7 +119,7 @@ interface ChartPoint {
   volume: number
 }
 
-function buildBuckets(sets: SetRow[], bucket: Bucket, units: Units): ChartPoint[] {
+function buildBuckets(sets: WorkoutVolumeRow[], bucket: Bucket, units: Units): ChartPoint[] {
   const count = bucket === 'weekly' ? 12 : 6
   const now = new Date()
   const periods: { start: Date; label: string }[] = []
@@ -148,15 +141,15 @@ function buildBuckets(sets: SetRow[], bucket: Bucket, units: Units): ChartPoint[
   return periods.map(({ start, label }) => {
     const next = bucket === 'weekly' ? addWeeks(start, 1) : addMonths(start, 1)
     const sumKg = sets.reduce((sum, s) => {
-      if (!s.workouts.finished_at) return sum
-      const d = new Date(s.workouts.finished_at)
+      if (!s.finished_at) return sum
+      const d = new Date(s.finished_at)
       const inBucket =
         bucket === 'weekly'
           ? isSameWeek(d, start, { weekStartsOn: 1 })
           : isSameMonth(d, start)
       if (!inBucket) return sum
       if (d < start || d >= next) return sum
-      return sum + (s.reps ?? 0) * (s.weight_kg ?? 0)
+      return sum + s.volume_kg
     }, 0)
     return { label, volume: Math.round(fromKg(sumKg, units)) }
   })
@@ -206,7 +199,7 @@ const CATEGORY_COLORS: Record<Category, string> = {
 
 type MusclePoint = { label: string } & Record<Category, number>
 
-function buildMuscleBuckets(sets: MuscleSetRow[], units: Units): MusclePoint[] {
+function buildMuscleBuckets(sets: MuscleVolumeRow[], units: Units): MusclePoint[] {
   const weeks = 12
   const now = new Date()
   const thisWeek = startOfWeek(now, { weekStartsOn: 1 })
@@ -220,12 +213,10 @@ function buildMuscleBuckets(sets: MuscleSetRow[], units: Units): MusclePoint[] {
     const point = { label } as MusclePoint
     for (const c of CATEGORIES) point[c] = 0
     for (const s of sets) {
-      const d = new Date(s.workouts.finished_at)
+      const d = new Date(s.finished_at)
       if (!isSameWeek(d, start, { weekStartsOn: 1 })) continue
-      const vol = (s.reps ?? 0) * (s.weight_kg ?? 0)
-      if (vol === 0) continue
-      const cat = s.exercises.category
-      point[cat] = (point[cat] ?? 0) + vol
+      if (s.volume_kg === 0) continue
+      point[s.category] = (point[s.category] ?? 0) + s.volume_kg
     }
     for (const c of CATEGORIES) {
       point[c] = Math.round(fromKg(point[c], units))

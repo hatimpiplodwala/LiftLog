@@ -23,14 +23,17 @@ import {
 } from '@/hooks/useWorkouts'
 import {
   useExercises,
-  useLastSetForExercise,
+  useLastSets,
   useExercisePR,
   isSetPR,
   usePreviousSessionSets,
+  type LastSet,
+  type PrevSessionSet,
 } from '@/hooks/useExercises'
 import { useProfile } from '@/hooks/useProfile'
 import { useTemplateExercises } from '@/hooks/useTemplates'
-import { formatWeight, formatDuration } from '@/lib/utils'
+import { formatWeight, formatDuration, errMessage } from '@/lib/utils'
+import { sumVolumeKg } from '@/lib/workout'
 import type { Exercise, WorkoutSet, Units } from '@/types/database.types'
 
 export function WorkoutActive() {
@@ -108,6 +111,10 @@ export function WorkoutActive() {
 
   const orderedExerciseIds = exerciseOrder
 
+  // Batched once for the whole exercise list instead of per ExerciseBlock.
+  const { data: lastSets } = useLastSets(orderedExerciseIds)
+  const { data: prevSessions } = usePreviousSessionSets(orderedExerciseIds, id ?? null)
+
   function moveExercise(exerciseId: string, dir: -1 | 1) {
     setExerciseOrder((cur) => {
       const i = cur.indexOf(exerciseId)
@@ -162,7 +169,7 @@ export function WorkoutActive() {
       navigate(`/workout/${workout.id}`, { replace: true })
     } catch (err) {
       setFinishing(false)
-      toast.error(err instanceof Error ? err.message : 'Failed to finish')
+      toast.error(errMessage(err, 'Failed to finish'))
     }
   }
 
@@ -195,10 +202,7 @@ export function WorkoutActive() {
   }
 
   const totalSets = (sets ?? []).length
-  const totalVolumeKg = (sets ?? []).reduce(
-    (sum, s) => sum + (s.reps ?? 0) * (s.weight_kg ?? 0),
-    0,
-  )
+  const totalVolumeKg = sumVolumeKg(sets ?? [])
 
   return (
     <div className="min-h-screen pb-32">
@@ -250,6 +254,8 @@ export function WorkoutActive() {
               exercise={exercise}
               units={units}
               sets={setsByExercise.get(eid) ?? []}
+              lastSet={lastSets?.get(eid)}
+              prevSession={prevSessions?.get(eid)}
               canMoveUp={idx > 0}
               canMoveDown={idx < orderedExerciseIds.length - 1}
               onMoveUp={() => moveExercise(eid, -1)}
@@ -319,6 +325,8 @@ function ExerciseBlock({
   exercise,
   units,
   sets,
+  lastSet,
+  prevSession,
   canMoveUp,
   canMoveDown,
   onMoveUp,
@@ -330,6 +338,8 @@ function ExerciseBlock({
   exercise: Exercise
   units: Units
   sets: WorkoutSet[]
+  lastSet: LastSet | undefined
+  prevSession: PrevSessionSet[] | undefined
   canMoveUp: boolean
   canMoveDown: boolean
   onMoveUp: () => void
@@ -340,9 +350,7 @@ function ExerciseBlock({
   const insertSet = useInsertSet()
   const updateSet = useUpdateSet()
   const deleteSet = useDeleteSet()
-  const { data: lastSet } = useLastSetForExercise(exercise.id)
   const { data: pr } = useExercisePR(exercise.id)
-  const { data: prevSession } = usePreviousSessionSets(exercise.id, workoutId)
   const [flashId, setFlashId] = useState<string | null>(null)
 
   // Editable defaults for the next set: last set this session, else the
@@ -458,7 +466,7 @@ function ExerciseBlock({
                   updates: v,
                 })
               } catch (err) {
-                toast.error(err instanceof Error ? err.message : 'Failed to save')
+                toast.error(errMessage(err, 'Failed to save'))
               }
             }}
             onDelete={async () => {
@@ -469,7 +477,7 @@ function ExerciseBlock({
                   exercise_id: exercise.id,
                 })
               } catch (err) {
-                toast.error(err instanceof Error ? err.message : 'Failed to delete')
+                toast.error(errMessage(err, 'Failed to delete'))
               }
             }}
             busy={deleteSet.isPending}
@@ -497,7 +505,7 @@ function ExerciseBlock({
                 900,
               )
             } catch (err) {
-              toast.error(err instanceof Error ? err.message : 'Failed to log set')
+              toast.error(errMessage(err, 'Failed to log set'))
             }
           }}
         />

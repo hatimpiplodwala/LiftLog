@@ -15,7 +15,7 @@ import {
   useInsertBodyWeight,
   useDeleteBodyWeight,
 } from '@/hooks/useBodyWeight'
-import { cn, fromKg, toKg } from '@/lib/utils'
+import { cn, fromKg, toKg, errMessage } from '@/lib/utils'
 import type { Units } from '@/types/database.types'
 
 export function Profile() {
@@ -43,7 +43,7 @@ export function Profile() {
       await updateProfile.mutateAsync({ username: username.trim() || null })
       toast.success('Profile updated')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to save')
+      toast.error(errMessage(err, 'Failed to save'))
     }
   }
 
@@ -55,7 +55,7 @@ export function Profile() {
       await updateProfile.mutateAsync({ units: u })
     } catch (err) {
       setUnits(prev)
-      toast.error(err instanceof Error ? err.message : 'Failed to save units')
+      toast.error(errMessage(err, 'Failed to save units'))
     }
   }
 
@@ -114,6 +114,7 @@ export function Profile() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Your name"
+              maxLength={50}
             />
             <Button
               fullWidth
@@ -157,7 +158,7 @@ function BodyWeightSection({ units }: { units: Units }) {
       setInput('')
       toast.success('Body weight logged')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to log')
+      toast.error(errMessage(err, 'Failed to log'))
     }
   }
 
@@ -165,7 +166,7 @@ function BodyWeightSection({ units }: { units: Units }) {
     try {
       await deleteLog.mutateAsync(id)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to delete')
+      toast.error(errMessage(err, 'Failed to delete'))
     }
   }
 

@@ -8,8 +8,9 @@ import { AppLogo } from '@/components/ui/AppLogo'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
-import { supabase } from '@/lib/supabase'
+import { supabase, unwrap } from '@/lib/supabase'
 import { formatDuration, workoutDurationSecs } from '@/lib/utils'
+import { sumVolumeKg, groupSetsByExercise } from '@/lib/workout'
 import type { WorkoutSet, Exercise } from '@/types/database.types'
 
 // Shape returned by the get_shared_workout RPC — user_id, notes, share_token intentionally excluded.
@@ -25,20 +26,13 @@ function useSharedWorkout(token: string | undefined) {
   return useQuery({
     enabled: !!token,
     queryKey: ['shared-workout', token],
-    queryFn: async () => {
-      const { data: payload, error } = await supabase.rpc('get_shared_workout', {
-        token,
-      })
-      if (error) throw error
-      if (!payload) return null
-      // The RPC returns exercises (name/category/type) for the workout's sets,
-      // so anon viewers never need direct read access to the exercises table.
-      return payload as {
-        workout: SharedWorkout
-        sets: SharedSet[]
-        exercises: Exercise[]
-      }
-    },
+    // The RPC returns exercises (name/category/type) for the workout's sets, so
+    // anon viewers never need direct read access to the exercises table. Returns
+    // null when the token doesn't match.
+    queryFn: async () =>
+      unwrap<{ workout: SharedWorkout; sets: SharedSet[]; exercises: Exercise[] } | null>(
+        supabase.rpc('get_shared_workout', { token }),
+      ),
   })
 }
 
@@ -49,21 +43,9 @@ export function WorkoutShare() {
   const grouped = useMemo(() => {
     if (!data) return []
     const exMap = new Map(data.exercises.map((e) => [e.id, e]))
-    const order: string[] = []
-    const seen = new Set<string>()
-    const setsByEx = new Map<string, SharedSet[]>()
-    for (const s of data.sets) {
-      if (!seen.has(s.exercise_id)) {
-        seen.add(s.exercise_id)
-        order.push(s.exercise_id)
-      }
-      const arr = setsByEx.get(s.exercise_id) ?? []
-      arr.push(s)
-      setsByEx.set(s.exercise_id, arr)
-    }
-    return order.map((id) => ({
-      exercise: exMap.get(id),
-      sets: setsByEx.get(id) ?? [],
+    return groupSetsByExercise(data.sets).map(({ exerciseId, sets }) => ({
+      exercise: exMap.get(exerciseId),
+      sets,
     }))
   }, [data])
 
@@ -111,10 +93,7 @@ function SharedWorkoutView({
   data: { workout: SharedWorkout; sets: SharedSet[]; exercises: Exercise[] }
   grouped: { exercise: Exercise | undefined; sets: SharedSet[] }[]
 }) {
-  const totalVolumeKg = data.sets.reduce(
-    (sum, s) => sum + (s.reps ?? 0) * (s.weight_kg ?? 0),
-    0,
-  )
+  const totalVolumeKg = sumVolumeKg(data.sets)
   const durationSecs = workoutDurationSecs(data.workout.started_at, data.workout.finished_at)
 
   return (

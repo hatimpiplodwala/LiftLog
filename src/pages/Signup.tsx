@@ -16,6 +16,11 @@ export function Signup() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
+    const trimmedUsername = username.trim()
+    if (trimmedUsername.length > 50) {
+      toast.error('Display name must be 50 characters or fewer')
+      return
+    }
     if (password.length < 8) {
       toast.error('Password must be at least 8 characters')
       return
@@ -28,7 +33,7 @@ export function Signup() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { username } },
+      options: { data: { username: trimmedUsername } },
     })
     setLoading(false)
     if (error) {
@@ -66,6 +71,7 @@ export function Signup() {
               type="text"
               name="username"
               autoComplete="nickname"
+              maxLength={50}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required

@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Spinner } from '@/components/ui/Spinner'
 import { Badge } from '@/components/ui/Badge'
 import { ChevronRightIcon, TrashIcon } from '@/components/layout/Icons'
-import { cn } from '@/lib/utils'
+import { cn, errMessage } from '@/lib/utils'
 import {
   useTemplates,
   useTemplateExercises,
@@ -50,7 +50,7 @@ export function Templates() {
                   await deleteTemplate.mutateAsync(t.id)
                   toast.success('Template deleted')
                 } catch (err) {
-                  toast.error(err instanceof Error ? err.message : 'Failed')
+                  toast.error(errMessage(err, 'Failed'))
                 }
               }}
             />
@@ -87,7 +87,7 @@ function TemplateRow({
       navigate(`/workout/${w.id}/active?templateId=${template.id}`)
     } catch (err) {
       setStarting(false)
-      toast.error(err instanceof Error ? err.message : 'Failed to start')
+      toast.error(errMessage(err, 'Failed to start'))
     }
   }
 

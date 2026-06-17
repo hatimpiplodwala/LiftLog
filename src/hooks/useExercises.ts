@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { supabase, unwrap } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Exercise, Category, ExerciseType } from '@/types/database.types'
 
@@ -8,14 +8,8 @@ export function useExercises() {
   return useQuery({
     enabled: !!user,
     queryKey: ['exercises', user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('exercises')
-        .select('*')
-        .order('name')
-      if (error) throw error
-      return data as Exercise[]
-    },
+    queryFn: async () =>
+      unwrap<Exercise[]>(supabase.from('exercises').select('*').order('name')),
   })
 }
 
@@ -29,15 +23,10 @@ export function useCreateExercise() {
   const { user } = useAuth()
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (args: CreateExerciseArgs) => {
-      const { data, error } = await supabase
-        .from('exercises')
-        .insert({ ...args, created_by: user!.id })
-        .select()
-        .single()
-      if (error) throw error
-      return data as Exercise
-    },
+    mutationFn: async (args: CreateExerciseArgs) =>
+      unwrap<Exercise>(
+        supabase.from('exercises').insert({ ...args, created_by: user!.id }).select().single(),
+      ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['exercises'] }),
   })
 }
@@ -46,30 +35,36 @@ export function useDeleteExercise() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('exercises').delete().eq('id', id)
-      if (error) throw error
+      await unwrap(supabase.from('exercises').delete().eq('id', id))
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['exercises'] }),
   })
 }
 
-export function useLastSetForExercise(exerciseId: string | null) {
+export interface LastSet {
+  reps: number | null
+  weight_kg: number | null
+  duration_secs: number | null
+}
+
+// Batched: the most recent finished-workout set for each exercise, in one round
+// trip. Keyed on the sorted id list so reordering exercises doesn't refetch.
+export function useLastSets(exerciseIds: string[]) {
   const { user } = useAuth()
+  const ids = [...exerciseIds].sort()
   return useQuery({
-    enabled: !!user && !!exerciseId,
-    queryKey: ['last-set', exerciseId, user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workout_sets')
-        .select('reps, weight_kg, duration_secs, workouts!inner(user_id, finished_at)')
-        .eq('exercise_id', exerciseId!)
-        .eq('workouts.user_id', user!.id)
-        .not('workouts.finished_at', 'is', null)
-        .order('completed_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      if (error) throw error
-      return data as { reps: number | null; weight_kg: number | null; duration_secs: number | null } | null
+    enabled: !!user && ids.length > 0,
+    queryKey: ['last-sets', user?.id, ids],
+    queryFn: async (): Promise<Map<string, LastSet>> => {
+      const rows = await unwrap<(LastSet & { exercise_id: string; weight_kg: number | string | null })[]>(
+        supabase.rpc('get_last_sets', { exercise_ids: ids }),
+      )
+      return new Map(
+        rows.map((r) => [
+          r.exercise_id,
+          { reps: r.reps, weight_kg: r.weight_kg == null ? null : Number(r.weight_kg), duration_secs: r.duration_secs },
+        ]),
+      )
     },
   })
 }
@@ -81,36 +76,30 @@ export interface ExercisePR {
 }
 
 // Single query for all exercise PRs; useExercisePR() selects from this Map so N consumers share one fetch.
+// Aggregated server-side (get_exercise_prs RPC, RLS-scoped to the caller's sets)
+// so we transfer one row per exercise instead of the full set history.
 export function useAllExercisePRs() {
   const { user } = useAuth()
   return useQuery({
     enabled: !!user,
     queryKey: ['exercise-prs', user?.id],
     queryFn: async (): Promise<Map<string, ExercisePR>> => {
-      const { data, error } = await supabase
-        .from('workout_sets')
-        .select('exercise_id, reps, weight_kg, duration_secs, workouts!inner(user_id)')
-        .eq('workouts.user_id', user!.id)
-      if (error) throw error
-      const rows = (data ?? []) as {
-        exercise_id: string
-        reps: number | null
-        weight_kg: number | null
-        duration_secs: number | null
-      }[]
+      // numeric/int can arrive as strings from PostgREST; coerce so callers compare numbers.
+      const rows = await unwrap<
+        {
+          exercise_id: string
+          max_weight_kg: number | string
+          max_reps: number | string
+          max_duration_secs: number | string
+        }[]
+      >(supabase.rpc('get_exercise_prs'))
       const map = new Map<string, ExercisePR>()
       for (const r of rows) {
-        const cur = map.get(r.exercise_id) ?? {
-          maxWeightKg: 0,
-          maxReps: 0,
-          maxDurationSecs: 0,
-        }
-        if (r.weight_kg != null && r.weight_kg > cur.maxWeightKg) cur.maxWeightKg = r.weight_kg
-        if (r.reps != null && r.reps > cur.maxReps) cur.maxReps = r.reps
-        if (r.duration_secs != null && r.duration_secs > cur.maxDurationSecs) {
-          cur.maxDurationSecs = r.duration_secs
-        }
-        map.set(r.exercise_id, cur)
+        map.set(r.exercise_id, {
+          maxWeightKg: Number(r.max_weight_kg),
+          maxReps: Number(r.max_reps),
+          maxDurationSecs: Number(r.max_duration_secs),
+        })
       }
       return map
     },
@@ -129,38 +118,34 @@ export interface PrevSessionSet {
   set_number: number
 }
 
-// Two-step: locate previous workout_id (limit 1), then fetch only its sets — avoids a 200-row over-fetch.
-export function usePreviousSessionSets(
-  exerciseId: string | null,
-  excludeWorkoutId: string | null,
-) {
+// Batched: each exercise's sets from its most recent prior finished workout,
+// computed server-side (get_previous_session_sets RPC) in one round trip.
+export function usePreviousSessionSets(exerciseIds: string[], excludeWorkoutId: string | null) {
   const { user } = useAuth()
+  const ids = [...exerciseIds].sort()
   return useQuery({
-    enabled: !!user && !!exerciseId,
-    queryKey: ['prev-session-sets', exerciseId, excludeWorkoutId, user?.id],
-    queryFn: async (): Promise<PrevSessionSet[]> => {
-      let head = supabase
-        .from('workout_sets')
-        .select('workout_id, workouts!inner(user_id, finished_at, started_at)')
-        .eq('exercise_id', exerciseId!)
-        .eq('workouts.user_id', user!.id)
-        .not('workouts.finished_at', 'is', null)
-        .order('started_at', { foreignTable: 'workouts', ascending: false })
-        .limit(1)
-      if (excludeWorkoutId) head = head.neq('workout_id', excludeWorkoutId)
-      const { data: headRows, error: headErr } = await head
-      if (headErr) throw headErr
-      const prevId = (headRows ?? [])[0]?.workout_id as string | undefined
-      if (!prevId) return []
-
-      const { data, error } = await supabase
-        .from('workout_sets')
-        .select('reps, weight_kg, duration_secs, set_number')
-        .eq('exercise_id', exerciseId!)
-        .eq('workout_id', prevId)
-        .order('set_number', { ascending: true })
-      if (error) throw error
-      return (data ?? []) as PrevSessionSet[]
+    enabled: !!user && ids.length > 0,
+    queryKey: ['prev-session-sets', user?.id, ids, excludeWorkoutId],
+    queryFn: async (): Promise<Map<string, PrevSessionSet[]>> => {
+      const rows = await unwrap<(PrevSessionSet & { exercise_id: string; weight_kg: number | string | null })[]>(
+        supabase.rpc('get_previous_session_sets', {
+          exercise_ids: ids,
+          exclude_workout_id: excludeWorkoutId,
+        }),
+      )
+      // Rows arrive ordered by (exercise_id, set_number), so per-exercise order is preserved.
+      const map = new Map<string, PrevSessionSet[]>()
+      for (const r of rows) {
+        const arr = map.get(r.exercise_id) ?? []
+        arr.push({
+          reps: r.reps,
+          weight_kg: r.weight_kg == null ? null : Number(r.weight_kg),
+          duration_secs: r.duration_secs,
+          set_number: r.set_number,
+        })
+        map.set(r.exercise_id, arr)
+      }
+      return map
     },
   })
 }

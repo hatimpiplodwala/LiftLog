@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { PlusIcon, SearchIcon, TrashIcon } from '@/components/layout/Icons'
-import { cn } from '@/lib/utils'
+import { cn, errMessage } from '@/lib/utils'
 import { useExercises, useCreateExercise, useDeleteExercise } from '@/hooks/useExercises'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Category, ExerciseType } from '@/types/database.types'
@@ -64,7 +64,7 @@ export function Exercises() {
       setAddOpen(false)
       setNewName('')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to add')
+      toast.error(errMessage(err, 'Failed to add'))
     }
   }
 
@@ -74,7 +74,7 @@ export function Exercises() {
       await deleteExercise.mutateAsync(id)
       toast.success('Deleted')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to delete')
+      toast.error(errMessage(err, 'Failed to delete'))
     }
   }
 
@@ -173,6 +173,7 @@ export function Exercises() {
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             placeholder="e.g. Cable Crunch"
+            maxLength={100}
             autoFocus
           />
 

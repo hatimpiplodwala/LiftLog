@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { ChevronRightIcon, ListIcon, PlusIcon } from '@/components/layout/Icons'
-import { cn } from '@/lib/utils'
+import { cn, errMessage } from '@/lib/utils'
 import { useCreateWorkout } from '@/hooks/useWorkouts'
 import { useTemplates } from '@/hooks/useTemplates'
 
@@ -30,8 +30,7 @@ export function WorkoutNew() {
       const qs = templateId ? `?templateId=${templateId}` : ''
       navigate(`/workout/${workout.id}/active${qs}`, { replace: true })
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to start workout'
-      toast.error(msg)
+      toast.error(errMessage(err, 'Failed to start workout'))
       setCreating(false)
     }
   }
@@ -46,6 +45,7 @@ export function WorkoutNew() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={defaultName()}
+            maxLength={200}
           />
         </Card>
 

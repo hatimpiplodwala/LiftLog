@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Textarea } from '@/components/ui/Textarea'
 import { useUpdateWorkout } from '@/hooks/useWorkouts'
+import { errMessage } from '@/lib/utils'
 
 interface Props {
   workoutId: string
@@ -29,7 +30,7 @@ export function WorkoutNotes({ workoutId, initialNotes }: Props) {
       })
       setSaved(next)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to save notes')
+      toast.error(errMessage(err, 'Failed to save notes'))
     }
   }
 
@@ -49,6 +50,7 @@ export function WorkoutNotes({ workoutId, initialNotes }: Props) {
         onBlur={commit}
         placeholder="How did it feel? Any PRs, struggles, or tweaks for next time…"
         rows={3}
+        maxLength={5000}
         className="resize-y"
       />
     </div>
