@@ -6,6 +6,7 @@ supabase/.env
 dist
 dist-ssr
 *.tsbuildinfo
+vite.config.d.ts
 *.local
 .env.local
 .env.*.local

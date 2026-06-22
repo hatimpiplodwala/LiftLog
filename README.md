@@ -85,7 +85,7 @@ npm install
 #    VITE_SUPABASE_ANON_KEY=your-anon-key
 #    (both from your Supabase project's API settings)
 
-# 3. Set up the database — apply supabase/migrations/ in order (001 → 007)
+# 3. Set up the database — apply supabase/migrations/ in order (001 → 011)
 #    via the Supabase SQL Editor, or with the CLI:
 supabase db push
 
@@ -103,3 +103,12 @@ npm run dev        # http://localhost:5173
 | `npm run lint` | Run ESLint |
 | `npm test` | Run the Vitest unit suite once |
 | `npm run test:watch` | Run Vitest in watch mode |
+
+## Deployment
+
+The production frontend is a Docker-built static bundle hosted on **AWS**, fronted by a CDN — provisioned as code and shipped on every push to `main`. Supabase remains the managed backend; only the static client is hosted on AWS.
+
+- **Container** — a multi-stage `Dockerfile` builds the app with Node and serves the static output from Nginx. The image is the deploy artifact and can be previewed locally with `docker run -p 8080:80 <image>`.
+- **Infrastructure** (`terraform/`) — Amazon **ECR** (image registry), a **private S3** bucket (origin), and a **CloudFront** distribution with Origin Access Control. CloudFront maps `403/404 → /index.html` so client-side routes resolve. Stand it up with `terraform apply`; tear it down with `terraform destroy`.
+- **CI/CD** (`.github/workflows/deploy.yml`) — on push to `main`, GitHub Actions authenticates to AWS via **OIDC** (no long-lived keys), builds and pushes the image to ECR, syncs the build to S3, and invalidates CloudFront.
+- **Cost** — fits inside AWS's always-free / free-tier envelope (CloudFront 1 TB/mo; S3 + ECR pennies), so it runs at roughly **$0** for a portfolio-scale site.
