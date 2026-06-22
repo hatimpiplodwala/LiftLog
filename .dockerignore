@@ -1,0 +1,16 @@
+node_modules
+dist
+*.tsbuildinfo
+.git
+.github
+.remember
+docs
+terraform
+*.log
+.env
+.env.*
+README.md
+prd.md
+progress.txt
+Dockerfile
+.dockerignore

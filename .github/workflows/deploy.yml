@@ -1,0 +1,76 @@
+# Build the Docker image, push it to ECR, and deploy the static build to S3+CloudFront.
+#
+# Required GitHub repository VARIABLES (Settings -> Secrets and variables -> Actions -> Variables):
+#   AWS_ROLE_ARN                 -> terraform output ci_role_arn
+#   ECR_REPOSITORY               -> terraform output ecr_repository_name
+#   S3_BUCKET                    -> terraform output s3_bucket
+#   CLOUDFRONT_DISTRIBUTION_ID   -> terraform output cloudfront_distribution_id
+#   VITE_SUPABASE_URL            -> your Supabase project URL (public)
+#   VITE_SUPABASE_ANON_KEY       -> your Supabase anon key (public; RLS enforces auth)
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write # required for AWS OIDC
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          IMAGE="$REGISTRY/$REPOSITORY"
+          docker build \
+            --build-arg VITE_SUPABASE_URL="${{ vars.VITE_SUPABASE_URL }}" \
+            --build-arg VITE_SUPABASE_ANON_KEY="${{ vars.VITE_SUPABASE_ANON_KEY }}" \
+            -t "$IMAGE:$IMAGE_TAG" -t "$IMAGE:latest" .
+          docker push "$IMAGE:$IMAGE_TAG"
+          docker push "$IMAGE:latest"
+          echo "IMAGE=$IMAGE:$IMAGE_TAG" >> "$GITHUB_ENV"
+
+      - name: Extract built assets from the image
+        run: |
+          id=$(docker create "$IMAGE")
+          docker cp "$id:/usr/share/nginx/html" ./dist
+          docker rm "$id"
+
+      - name: Sync to S3
+        run: |
+          # Upload everything with long-lived immutable caching...
+          aws s3 sync ./dist "s3://${{ vars.S3_BUCKET }}" \
+            --delete \
+            --cache-control "public,max-age=31536000,immutable"
+          # ...then re-upload index.html with no-cache so new deploys appear at once.
+          aws s3 cp ./dist/index.html "s3://${{ vars.S3_BUCKET }}/index.html" \
+            --cache-control "no-cache" \
+            --content-type "text/html"
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "/index.html"
