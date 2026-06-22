@@ -27,6 +27,23 @@ resource "aws_ecr_repository" "app" {
   }
 }
 
+# Expire old images so SHA-tagged builds don't accumulate forever.
+resource "aws_ecr_lifecycle_policy" "app" {
+  repository = aws_ecr_repository.app.name
+  policy = jsonencode({
+    rules = [{
+      rulePriority = 1
+      description  = "Keep only the 10 most recent images"
+      selection = {
+        tagStatus   = "any"
+        countType   = "imageCountMoreThan"
+        countNumber = 10
+      }
+      action = { type = "expire" }
+    }]
+  })
+}
+
 # --------------------------------------------------------------------------
 # S3 — private origin bucket. Only CloudFront (via OAC) may read it.
 # --------------------------------------------------------------------------
@@ -79,6 +96,9 @@ resource "aws_cloudfront_distribution" "site" {
     compress               = true
     # AWS managed "CachingOptimized" policy.
     cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+    # AWS managed "SecurityHeadersPolicy": HSTS, X-Content-Type-Options,
+    # X-Frame-Options, Referrer-Policy. (CSP would be a separate custom policy.)
+    response_headers_policy_id = "67f7725c-6f97-4210-82d7-5512b31e9d03"
   }
 
   # SPA routing: a private bucket + OAC returns 403 for missing keys, so map

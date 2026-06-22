@@ -16,6 +16,11 @@ on:
       - '**.md' # docs-only changes don't need a redeploy
   workflow_dispatch:
 
+# Never let two deploys race on the S3 sync; a newer push supersedes an in-flight one.
+concurrency:
+  group: deploy-aws
+  cancel-in-progress: true
+
 permissions:
   id-token: write # required for AWS OIDC
   contents: read
