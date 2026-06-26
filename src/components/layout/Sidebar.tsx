@@ -1,25 +1,7 @@
 import { Link, NavLink } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { AppLogo } from '@/components/ui/AppLogo'
-import {
-  HomeIcon,
-  DumbbellIcon,
-  HistoryIcon,
-  ChartIcon,
-  GridIcon,
-  ListIcon,
-  UserIcon,
-} from './Icons'
-
-const links = [
-  { to: '/dashboard', label: 'Dashboard', Icon: HomeIcon },
-  { to: '/workout/new', label: 'Workout', Icon: DumbbellIcon },
-  { to: '/history', label: 'History', Icon: HistoryIcon },
-  { to: '/progress', label: 'Progress', Icon: ChartIcon },
-  { to: '/exercises', label: 'Exercises', Icon: GridIcon },
-  { to: '/templates', label: 'Templates', Icon: ListIcon },
-  { to: '/profile', label: 'Profile', Icon: UserIcon },
-]
+import { navLinks } from './navLinks'
 
 export function Sidebar() {
   return (
@@ -35,7 +17,7 @@ export function Sidebar() {
       </Link>
 
       <nav className="flex-1 space-y-0.5 p-3">
-        {links.map(({ to, label, Icon }) => (
+        {navLinks.map(({ to, label, Icon }) => (
           <NavLink
             key={to}
             to={to}

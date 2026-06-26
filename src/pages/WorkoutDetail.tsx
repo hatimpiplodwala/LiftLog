@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Badge } from '@/components/ui/Badge'
-import { Modal } from '@/components/ui/Modal'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Input } from '@/components/ui/Input'
 import { PlusIcon, ShareIcon, TrashIcon } from '@/components/layout/Icons'
@@ -268,7 +267,7 @@ export function WorkoutDetail() {
         excludeIds={orderedExerciseIds}
       />
 
-      <Modal open={shareOpen} onClose={() => setShareOpen(false)} title="Share link copied">
+      <BottomSheet open={shareOpen} onClose={() => setShareOpen(false)} title="Share link copied">
         <p className="text-sm text-muted-foreground">
           The public link to this workout has been copied to your clipboard.
         </p>
@@ -288,7 +287,7 @@ export function WorkoutDetail() {
           </Button>
           <Button onClick={() => setShareOpen(false)}>Done</Button>
         </div>
-      </Modal>
+      </BottomSheet>
 
       <BottomSheet
         open={templateOpen}

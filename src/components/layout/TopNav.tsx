@@ -1,16 +1,7 @@
 import { Link, NavLink } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { AppLogo } from '@/components/ui/AppLogo'
-
-const links = [
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/workout/new', label: 'Workout' },
-  { to: '/history', label: 'History' },
-  { to: '/exercises', label: 'Exercises' },
-  { to: '/templates', label: 'Templates' },
-  { to: '/progress', label: 'Progress' },
-  { to: '/profile', label: 'Profile' },
-]
+import { navLinks } from './navLinks'
 
 export function TopNav() {
   return (
@@ -23,7 +14,7 @@ export function TopNav() {
           </span>
         </Link>
         <nav className="flex min-w-0 items-center gap-0.5 lg:gap-1">
-          {links.map(({ to, label }) => (
+          {navLinks.map(({ to, label }) => (
             <NavLink
               key={to}
               to={to}
